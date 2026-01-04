@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hikariブランドジェネレーター</title>
+    <!-- デザイン用：Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React本体 -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- JSX変換用：Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- ダークモードとブランドカラーの設定 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        hikari: {
+                            base: '#EAEFF3',
+                            text: '#626262',
+                            accent: '#C11E2D',
+                            darkBase: '#1f2937', // ダークモード背景
+                            darkCard: '#374151', // ダークモードカード
+                            darkText: '#f3f4f6'  // ダークモード文字
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* スクロールバーのカスタマイズ（任意） */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- アイコンコンポーネント (Lucide Icons) ---
+        // 軽量化のためSVGを直接埋め込んでいます
+        const Icon = ({ children, className = "", size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const Copy = (p) => <Icon {...p}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></Icon>;
+        const Check = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12"/></Icon>;
+        const RefreshCw = (p) => <Icon {...p}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></Icon>;
+        const Calendar = (p) => <Icon {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></Icon>;
+        const Users = (p) => <Icon {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
+        const PenTool = (p) => <Icon {...p}><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></Icon>;
+        const Camera = (p) => <Icon {...p}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></Icon>;
+        const ChevronDown = (p) => <Icon {...p}><path d="m6 9 6 6 6-6"/></Icon>;
+        const Settings = (p) => <Icon {...p}><path d="M12.22 2h-.44a2 2 0 0 1-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.72l-.15.1a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73v.18a2 2 0 0 1 2 2h.44a2 2 0 0 1 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 1-2-2z"/><circle cx="12" cy="12" r="3"/></Icon>;
+        const HelpCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></Icon>;
+        const X = (p) => <Icon {...p}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></Icon>;
+        const RotateCcw = (p) => <Icon {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 16"/><path d="M3 3v5h5"/></Icon>;
+        const Moon = (p) => <Icon {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></Icon>;
+        const Sun = (p) => <Icon {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></Icon>;
+        const AlertTriangle = (p) => <Icon {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></Icon>;
+
+        // --- アプリケーション本体 ---
+        const HikariSnsGenerator = () => {
+            // --- State ---
+            const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+            const [category, setCategory] = useState('company');
+            const [eventDetail, setEventDetail] = useState('');
+            const [stakeholder, setStakeholder] = useState('general');
+            const [generatedText, setGeneratedText] = useState({ fb: '', insta: '', x: '' });
+            const [imageSuggestion, setImageSuggestion] = useState('');
+            const [copiedState, setCopiedState] = useState({ fb: false, insta: false, x: false });
+            
+            // Settings State
+            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+            const [isHelpOpen, setIsHelpOpen] = useState(false);
+            const [isDarkMode, setIsDarkMode] = useState(false);
+            const [signature, setSignature] = useState("光製薬株式会社\n公式サイト：https://www.hikari-pharma.co.jp/");
+            const [showGreeting, setShowGreeting] = useState(true);
+            const [ngWordsStr, setNgWordsStr] = useState("絶対,100%,No.1,必ず治る"); 
+            const [ngWarnings, setNgWarnings] = useState([]);
+
+            // Branding Messages
+            const brandingMessages = {
+                general: {
+                    short: "まっすぐ、やさしく、医療と人をつなぐ。",
+                    long: "私たち光製薬は、創業以来変わらぬ想いで、一つひとつの医薬品と向き合っています。\n技術の進歩と共に、決して変わらない「やさしさ」を、すべての患者様へ。\n未来の健やかな毎日のために、私たちは今日も歩み続けます。"
+                },
+                patient: {
+                    short: "知って安心、届けたいのは“やさしさ”です。",
+                    long: "病気と向き合う時間、ふとした瞬間に感じる不安。\n私たちは、そんな心にそっと寄り添える存在でありたいと願っています。\n「知って安心」と思っていただける情報を、まごころを込めてお届けします。"
+                },
+                medical: {
+                    short: "現場に“安心”を。確かな情報を、すぐ手元に。",
+                    long: "一分一秒を争う医療の現場で、迷いなく信頼できるパートナーであること。\n確かなエビデンスと、使いやすさを追求した情報提供で、\n先生方と、その先にいる患者様の笑顔を支え続けます。"
+                },
+                recruit: {
+                    short: "“医療のヒカリ”を、未来へ紡ぐあなたへ。",
+                    long: "実験室の小さな明かりは、やがて誰かの希望の光になる。\nあなたの情熱と優しさが、明日の医療を変える力になります。\n私たちと一緒に、まだ見ぬ「ヒカリ輝くミライ」を創りに行きませんか？"
+                },
+                partner: {
+                    short: "“つくる力”を、医薬品開発に活かしませんか？",
+                    long: "確かな技術力と、柔軟な対応力で、医薬品開発の課題を解決します。\n共に目指すのは、世界中の人々の健康への貢献。\n信頼できるパートナーとして、貴社のビジネスを強力にサポートいたします。"
+                }
+            };
+
+            const imageSuggestionData = {
+                company: "【推奨画像】\nオフィスの窓から差し込む柔らかな自然光を入れた、社員の自然な表情。\nまたは、季節の花や空の写真を背景に、ロゴを配置した清潔感のある画像。",
+                academic: "【推奨画像】\n学会会場の看板を背景に、参加メンバーが充実した表情で並んでいる集合写真。\n真剣にポスター発表を聞いている後ろ姿など「熱意」が伝わる構図。",
+                csr: "【推奨画像】\n地域清掃やイベント活動中の、社員と地域の方とのふれあいの瞬間。\n「手元」や「笑顔」にクローズアップし、人の温かさを強調した写真。",
+                recruit: "【推奨画像】\n先輩社員が後輩に優しく教えているシーンや、社員食堂でのリラックスしたオフショット。\n「この会社で働くイメージ」が湧くような、明るく親しみやすい雰囲気で。",
+                product: "【推奨画像】\n工場内の機械のメタリックな質感と、厳しくチェックする担当者の真剣な眼差し。\n「品質へのこだわり」が伝わる、少しコントラスト強めの洗練された写真。"
+            };
+
+            const coreHashtags = ["#光製薬", "#HikariPharmaceutical", "#Vision2030", "#医療と人をつなぐ"];
+            
+            const variableHashtagsData = {
+                company: ["#企業文化", "#社内風景", "#製薬会社"],
+                academic: ["#学会情報", "#医療ニュース", "#研究開発"],
+                csr: ["#サステナビリティ", "#地域貢献", "#健康経営"],
+                recruit: ["#採用", "#就活", "#働く人"],
+                product: ["#品質管理", "#安定供給", "#ものづくり"]
+            };
+
+            // NG Word Check Logic
+            useEffect(() => {
+                if (!eventDetail) {
+                    setNgWarnings([]);
+                    return;
+                }
+                const words = ngWordsStr.split(',').map(w => w.trim()).filter(w => w);
+                const detected = words.filter(word => eventDetail.includes(word));
+                setNgWarnings(detected);
+            }, [eventDetail, ngWordsStr]);
+
+            // Dark Mode Class Handling
+            useEffect(() => {
+                if (isDarkMode) {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.remove('bg-[#EAEFF3]');
+                    document.body.classList.add('bg-hikari-darkBase');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.classList.add('bg-[#EAEFF3]');
+                    document.body.classList.remove('bg-hikari-darkBase');
+                }
+            }, [isDarkMode]);
+
+            const generateContent = () => {
+                const variableTags = variableHashtagsData[category] || ["#製薬", "#健康", "#未来"];
+                const allHashtags = [...coreHashtags, ...variableTags].join(' '); 
+                
+                const monthStr = `${selectedMonth}月`;
+                const intro = showGreeting ? getSeasonalIntro(monthStr) : "";
+                
+                const brandingBlock = brandingMessages[stakeholder].long;
+                const shortBranding = brandingMessages[stakeholder].short;
+
+                const topicHeader = category === 'academic' ? '学会・研究ニュース' : '今月のトピックス';
+                const mainBody = eventDetail 
+                ? `\n━━━━━━━━━━━━━━\n【${topicHeader}】\n${eventDetail}\n━━━━━━━━━━━━━━\n` 
+                : '';
+
+                // FB: Added Signature from settings
+                const fbText = `${intro ? intro + "\n\n" : ""}${mainBody}\n${brandingBlock}\n\n私たち光製薬は、これからも医療の未来を照らし続けます。\n\n----------------------------\n${signature}\n----------------------------\n\n${allHashtags}`;
+
+                const instaText = `${intro ? intro + "\n\n" : ""}${eventDetail ? `${eventDetail}\n\n` : ''}..\n\n${brandingBlock}\n\n私たちの日々の取り組みや、想いを発信しています。\nぜひフォローして、光製薬の「今」に触れてください。\n\n🔗 詳しくはプロフィール（@hikari_pharma_official）のリンクへ\n\n${allHashtags}`;
+
+                const xText = `【${monthStr}のお知らせ】\n\n${shortBranding}\n\n${eventDetail}\n\n${showGreeting ? "季節の変わり目、皆様もご自愛ください。\n" : ""}#光製薬 #Vision2030`; 
+
+                setGeneratedText({ fb: fbText, insta: instaText, x: xText });
+                setImageSuggestion(imageSuggestionData[category] || "内容に合わせた清潔感のある写真");
+                setCopiedState({ fb: false, insta: false, x: false });
+            };
+
+            const getSeasonalIntro = (month) => {
+                const greetings = {
+                1: "新しい年の幕開け。\n凛とした空気の中、私たちも新たな決意と共にスタートを切りました。",
+                2: "寒さの中にも、少しずつ春の足音が聞こえてくる季節。\n梅の蕾がほころぶように、希望への準備を進めています。",
+                3: "日差しが柔らかくなり、心も弾む春の訪れ。\n新しい出会いと挑戦の季節がやってきました。",
+                4: "桜舞う美しい季節。\n新しい仲間を迎え、光製薬もフレッシュな風と共に歩み出します。",
+                5: "新緑がまぶしい季節。\n若葉のように力強く、私たちも成長を続けてまいります。",
+                6: "雨の音に紫陽花が映える季節。\n一雨ごとに深まる緑のように、私たちの絆も深めていきます。",
+                7: "夏空が広がる季節。\n太陽の光に負けないくらいの熱意で、医療の現場を支えます。",
+                8: "蝉時雨が響く夏本番。\n暑さに負けず、安定供給という使命を胸に日々邁進しています。",
+                9: "少しずつ秋の気配を感じる今日この頃。\n実りの秋に向け、これまでの成果を形にする時期です。",
+                10: "木々が色づき始める美しい季節。\n深まる秋と共に、私たちの研究もより深く、より本質へ。",
+                11: "肌寒さを感じる季節。\n皆様の健康を願う気持ちが、より一層強くなる時期です。",
+                12: "一年の締めくくりの月。\n感謝の気持ちを込めて、今年一年を振り返り、未来へ想いを馳せます。"
+                };
+                return greetings[selectedMonth] || `${month}を迎え、気持ちを新たに業務に取り組んでいます。`;
+            };
+
+            const handleCopy = (platform) => {
+                navigator.clipboard.writeText(generatedText[platform]);
+                setCopiedState({ ...copiedState, [platform]: true });
+                setTimeout(() => setCopiedState({ ...copiedState, [platform]: false }), 2000);
+            };
+
+            // Reset Function
+            const handleReset = () => {
+                if(window.confirm("入力内容をリセットしますか？")) {
+                    setEventDetail("");
+                    setCategory("company");
+                    setSelectedMonth(new Date().getMonth() + 1);
+                    setStakeholder("general");
+                }
+            };
+
+            useEffect(() => {
+                generateContent();
+            }, [selectedMonth, category, eventDetail, stakeholder, signature, showGreeting]);
+
+            return (
+                // Theme colors handled by Tailwind dark mode classes
+                <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${isDarkMode ? 'text-hikari-darkText' : 'text-hikari-text'}`}>
+                
+                {/* Mobile Sticky Header */}
+                <div className="sticky top-0 z-10 bg-white dark:bg-hikari-darkCard border-b border-hikari-accent/20 shadow-sm px-4 py-3 flex items-center justify-between md:hidden">
+                    <div className="flex items-center gap-2">
+                        <img src="rogo.jpg" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                        <h1 className="font-bold text-sm">Hikariブランドジェネレーター</h1>
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={() => setIsHelpOpen(true)} className="p-2 text-hikari-text dark:text-gray-200"><HelpCircle size={20}/></button>
+                        <button onClick={() => setIsSettingsOpen(true)} className="p-2 text-hikari-text dark:text-gray-200"><Settings size={20}/></button>
+                    </div>
+                </div>
+
+                <div className="max-w-4xl mx-auto p-4 md:p-8">
+                    
+                    {/* Desktop Header */}
+                    <header className="hidden md:flex mb-8 border-b-4 border-hikari-accent pb-4 bg-white dark:bg-hikari-darkCard p-6 rounded-t-xl shadow-sm items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="h-16 w-auto flex items-center">
+                                <img src="rogo.jpg" alt="光製薬ロゴ" className="h-full w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                            </div>
+                            <div className="border-l-2 border-slate-200 dark:border-gray-600 pl-4">
+                                <h1 className="text-2xl font-bold">Hikariブランドジェネレーター</h1>
+                                <p className="opacity-80 text-sm">ブランディング強化・運用効率化ツール</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setIsHelpOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-gray-700 text-blue-700 dark:text-blue-200 hover:bg-blue-100 transition-colors"
+                            >
+                                <HelpCircle size={18} />
+                                <span>使い方</span>
+                            </button>
+                            <button 
+                                onClick={() => setIsSettingsOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 transition-colors"
+                            >
+                                <Settings size={18} />
+                                <span>設定</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div className="grid grid-cols-1 gap-6">
+                    
+                    {/* Controls Section */}
+                    <div className="space-y-4">
+                        
+                        {/* 1. Month Selection */}
+                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
+                            <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent">
+                                <Calendar size={20} />
+                                投稿時期
+                            </h2>
+                            <div className="relative">
+                                <select 
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                                className="w-full appearance-none p-3 pl-4 pr-10 bg-hikari-base dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg text-lg font-medium focus:ring-2 focus:ring-hikari-accent outline-none cursor-pointer"
+                                >
+                                {[...Array(12)].map((_, i) => (
+                                    <option key={i} value={i + 1}>{i + 1}月</option>
+                                ))}
+                                </select>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
+                                <ChevronDown size={20} />
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 2. Target Stakeholder */}
+                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
+                            <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent">
+                                <Users size={20} />
+                                ターゲット (ブランド戦略)
+                            </h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {[
+                                { id: 'general', label: '一般・ブランド全体', desc: 'まっすぐ、やさしく' },
+                                { id: 'patient', label: '患者様・ご家族', desc: '安心とやさしさ' },
+                                { id: 'medical', label: '医療関係者', desc: '信頼と確かな情報' },
+                                { id: 'recruit', label: '採用候補者', desc: '未来へのヒカリ' },
+                                { id: 'partner', label: 'パートナー企業', desc: 'CDMO・確信' },
+                                ].map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setStakeholder(item.id)}
+                                    className={`text-left p-3 rounded-lg border transition-all ${
+                                    stakeholder === item.id
+                                        ? 'border-hikari-accent bg-red-50 dark:bg-red-900/30 ring-1 ring-hikari-accent'
+                                        : 'border-slate-200 dark:border-gray-600 hover:border-hikari-accent/50'
+                                    }`}
+                                >
+                                    <div className="font-bold text-sm">{item.label}</div>
+                                    <div className="text-xs opacity-70">{item.desc}</div>
+                                </button>
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* 3. Event Category & Details */}
+                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
+                            <div className="flex justify-between items-center mb-3">
+                                <h2 className="flex items-center gap-2 font-bold text-base text-hikari-accent">
+                                    <PenTool size={20} />
+                                    投稿内容
+                                </h2>
+                                <button 
+                                    onClick={handleReset}
+                                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
+                                >
+                                    <RotateCcw size={14}/>
+                                    リセット
+                                </button>
+                            </div>
+                            
+                            <div className="mb-4">
+                                <label className="block text-sm font-bold mb-2">カテゴリー</label>
+                                <div className="relative">
+                                <select 
+                                    value={category} 
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="w-full appearance-none p-3 bg-hikari-base dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-hikari-accent outline-none"
+                                >
+                                    <option value="company">会社行事・ニュース</option>
+                                    <option value="academic">学会・研究ニュース</option>
+                                    <option value="csr">サステナビリティ・地域貢献</option>
+                                    <option value="recruit">採用・社員紹介</option>
+                                    <option value="product">製品・工場（CDMO）</option>
+                                </select>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
+                                    <ChevronDown size={18} />
+                                </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold mb-2">
+                                詳細内容 
+                                <span className="ml-2 text-xs font-normal opacity-60">※具体的な行事名や出来事を入力</span>
+                                </label>
+                                <textarea
+                                    value={eventDetail}
+                                    onChange={(e) => setEventDetail(e.target.value)}
+                                    placeholder="例：第20回 日本医学会総会に参加しました。ブースでは新薬の展示を行い、多くの先生方にお立ち寄りいただきました。"
+                                    className="w-full p-3 border bg-white dark:bg-gray-800 border-slate-300 dark:border-gray-600 rounded-lg h-32 text-sm focus:ring-2 focus:ring-hikari-accent outline-none resize-none"
+                                />
+                                {ngWarnings.length > 0 && (
+                                    <div className="mt-2 text-red-500 text-xs flex items-center gap-1 font-bold animate-pulse">
+                                        <AlertTriangle size={14} />
+                                        <span>NGワードが含まれています: {ngWarnings.join(", ")}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gray-700">
+                                <button 
+                                onClick={generateContent}
+                                className="w-full py-3 bg-hikari-accent text-white rounded-lg flex items-center justify-center gap-2 hover:bg-[#a01825] transition-colors font-bold shadow-md active:transform active:scale-95"
+                                >
+                                <RefreshCw size={18} />
+                                内容を更新する
+                                </button>
+                            </div>
+                        </section>
+
+                    </div>
+
+                    {/* Preview Section */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 mb-2">
+                        <h2 className="font-bold text-xl">プレビュー</h2>
+                        <span className="text-xs bg-hikari-base dark:bg-gray-700 px-2 py-1 rounded-full border border-slate-200 dark:border-gray-600">コピーして使用</span>
+                        </div>
+
+                        {/* Instagram Card */}
+                        <div className="border border-slate-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-hikari-darkCard">
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-3 flex justify-between items-center">
+                            <span className="font-bold flex items-center gap-2"><Camera size={18}/> Instagram</span>
+                            <button 
+                            onClick={() => handleCopy('insta')}
+                            className="flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
+                            >
+                            {copiedState.insta ? <Check size={14} /> : <Copy size={14} />}
+                            {copiedState.insta ? '完了' : 'コピー'}
+                            </button>
+                        </div>
+                        
+                        {/* Image Suggestion */}
+                        <div className="bg-hikari-base dark:bg-gray-800 p-4 border-b border-slate-200 dark:border-gray-700">
+                            <div className="bg-white dark:bg-gray-700 border-2 border-dashed border-slate-300 dark:border-gray-500 rounded-lg p-4 flex flex-col items-center justify-center text-center">
+                            <div className="bg-red-50 dark:bg-red-900/50 text-hikari-accent p-2 rounded-full mb-2">
+                                <Camera size={24} />
+                            </div>
+                            <h3 className="font-bold text-sm mb-1">おすすめの画像構成</h3>
+                            <p className="text-xs leading-relaxed whitespace-pre-wrap opacity-80">
+                                {imageSuggestion}
+                            </p>
+                            </div>
+                        </div>
+
+                        <div className="p-4">
+                            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-slate-100 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed h-64 overflow-y-auto">
+                                {generatedText.insta}
+                            </div>
+                        </div>
+                        </div>
+
+                        {/* Facebook Card */}
+                        <div className="border border-slate-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-hikari-darkCard">
+                        <div className="bg-[#1877F2] text-white px-4 py-3 flex justify-between items-center">
+                            <span className="font-bold flex items-center gap-2">Facebook</span>
+                            <button 
+                            onClick={() => handleCopy('fb')}
+                            className="flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
+                            >
+                            {copiedState.fb ? <Check size={14} /> : <Copy size={14} />}
+                            {copiedState.fb ? '完了' : 'コピー'}
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
+                            {generatedText.fb}
+                            </div>
+                        </div>
+                        </div>
+
+                        {/* X Card */}
+                        <div className="border border-slate-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-hikari-darkCard">
+                        <div className="bg-black text-white px-4 py-3 flex justify-between items-center">
+                            <span className="font-bold flex items-center gap-2">X (旧Twitter)</span>
+                            <button 
+                            onClick={() => handleCopy('x')}
+                            className="flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
+                            >
+                            {copiedState.x ? <Check size={14} /> : <Copy size={14} />}
+                            {copiedState.x ? '完了' : 'コピー'}
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
+                            {generatedText.x}
+                            </div>
+                            <div className="mt-2 text-right text-xs opacity-60">
+                            {generatedText.x.length} 文字
+                            </div>
+                        </div>
+                        </div>
+
+                    </div>
+                    </div>
+                </div>
+
+                {/* --- Help Modal --- */}
+                {isHelpOpen && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-hikari-darkCard w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-fade-in">
+                            <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    <HelpCircle className="text-hikari-accent" />
+                                    使い方ガイド
+                                </h3>
+                                <button onClick={() => setIsHelpOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={24}/></button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="text-sm opacity-80 mb-4">
+                                    ブランドイメージを統一し、誰でも簡単にSNS投稿を作成できるツールです。
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</div>
+                                        <div>
+                                            <p className="font-bold text-sm">投稿時期を選ぶ</p>
+                                            <p className="text-xs opacity-70">季節に合わせた挨拶文が自動で挿入されます。</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</div>
+                                        <div>
+                                            <p className="font-bold text-sm">ターゲットを選ぶ</p>
+                                            <p className="text-xs opacity-70">「患者様」「採用」など、相手に響くトーンに自動調整。</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">3</div>
+                                        <div>
+                                            <p className="font-bold text-sm">内容を入力＆更新</p>
+                                            <p className="text-xs opacity-70">行事名などを入れ「更新する」ボタンを押すと文章が完成！</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">4</div>
+                                        <div>
+                                            <p className="font-bold text-sm">コピーして投稿</p>
+                                            <p className="text-xs opacity-70">各SNSの「コピー」ボタンを押して貼り付けるだけ。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800 text-center">
+                                <button onClick={() => setIsHelpOpen(false)} className="w-full py-2 bg-hikari-accent text-white rounded-lg font-bold">理解しました！</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* --- Settings Modal --- */}
+                {isSettingsOpen && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-hikari-darkCard w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+                            <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    <Settings className="text-gray-500" />
+                                    設定・カスタマイズ
+                                </h3>
+                                <button onClick={() => setIsSettingsOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={24}/></button>
+                            </div>
+                            
+                            <div className="p-6 space-y-6 overflow-y-auto">
+                                
+                                {/* Dark Mode Toggle */}
+                                <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
+                                    <div className="flex items-center gap-2">
+                                        {isDarkMode ? <Moon size={20} className="text-yellow-400"/> : <Sun size={20} className="text-orange-400"/>}
+                                        <span className="font-bold text-sm">ダークモード切替</span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsDarkMode(!isDarkMode)}
+                                        className={`w-12 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                                    >
+                                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isDarkMode ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Greeting Toggle */}
+                                <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
+                                    <div>
+                                        <p className="font-bold text-sm">季節の挨拶文</p>
+                                        <p className="text-xs opacity-60">自動挿入される時候の挨拶をON/OFFします</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setShowGreeting(!showGreeting)}
+                                        className={`w-12 h-6 rounded-full p-1 transition-colors ${showGreeting ? 'bg-hikari-accent' : 'bg-gray-300'}`}
+                                    >
+                                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${showGreeting ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Signature Edit */}
+                                <div className="space-y-2">
+                                    <label className="font-bold text-sm block">署名（フッター）の編集</label>
+                                    <textarea 
+                                        value={signature}
+                                        onChange={(e) => setSignature(e.target.value)}
+                                        className="w-full p-3 border bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg text-sm h-24 resize-none focus:ring-1 focus:ring-hikari-accent outline-none"
+                                    />
+                                    <p className="text-xs opacity-60">※Facebook投稿の末尾に挿入されます</p>
+                                </div>
+
+                                {/* NG Words */}
+                                <div className="space-y-2">
+                                    <label className="font-bold text-sm block">簡易NGワード登録</label>
+                                    <input 
+                                        type="text"
+                                        value={ngWordsStr}
+                                        onChange={(e) => setNgWordsStr(e.target.value)}
+                                        className="w-full p-3 border bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-1 focus:ring-hikari-accent outline-none"
+                                        placeholder="カンマ(,)区切りで入力"
+                                    />
+                                    <p className="text-xs opacity-60">入力内容に含まれると警告を表示します</p>
+                                </div>
+
+                            </div>
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800 text-center border-t border-gray-100 dark:border-gray-700">
+                                <button onClick={() => setIsSettingsOpen(false)} className="px-8 py-2 bg-gray-800 dark:bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700">閉じる</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HikariSnsGenerator />);
+    </script>
+</body>
+</html>
