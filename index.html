@@ -42,33 +42,21 @@
         }
     </script>
     <style>
-        /* スクロールバーのカスタマイズ（任意） */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #4b5563;
-        }
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // --- アイコンコンポーネント (Lucide Icons) ---
-        // 軽量化のためSVGを直接埋め込んでいます
         const Icon = ({ children, className = "", size = 24 }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 {children}
@@ -90,6 +78,15 @@
         const Moon = (p) => <Icon {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></Icon>;
         const Sun = (p) => <Icon {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></Icon>;
         const AlertTriangle = (p) => <Icon {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></Icon>;
+        const Facebook = (p) => <Icon {...p}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></Icon>;
+        const Twitter = (p) => <Icon {...p}><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></Icon>;
+        const MessageCircle = (p) => <Icon {...p}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></Icon>;
+        const ImageIcon = (p) => <Icon {...p}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></Icon>;
+        const ImagePlus = (p) => <Icon {...p}><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></Icon>;
+        const Building = (p) => <Icon {...p}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></Icon>;
+        const Factory = (p) => <Icon {...p}><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></Icon>;
+        const Link = (p) => <Icon {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></Icon>;
+
 
         // --- アプリケーション本体 ---
         const HikariSnsGenerator = () => {
@@ -102,6 +99,12 @@
             const [imageSuggestion, setImageSuggestion] = useState('');
             const [copiedState, setCopiedState] = useState({ fb: false, insta: false, x: false });
             
+            // Tab State: 'insta', 'fb', 'x', 'reply'
+            const [activeTab, setActiveTab] = useState('insta');
+            
+            // Image Selection State
+            const [selectedImage, setSelectedImage] = useState(null);
+            
             // Settings State
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -110,6 +113,71 @@
             const [showGreeting, setShowGreeting] = useState(true);
             const [ngWordsStr, setNgWordsStr] = useState("絶対,100%,No.1,必ず治る"); 
             const [ngWarnings, setNgWarnings] = useState([]);
+            
+            // Link Settings State
+            const [customLinkUrl, setCustomLinkUrl] = useState("https://www.hikari-pharma.co.jp/");
+            const [customLinkText, setCustomLinkText] = useState("プロフィール（@hikari_pharma_official）のリンクへ");
+
+            // Holiday Settings State
+            const [holidaySettings, setHolidaySettings] = useState({
+                hq: {
+                    summer: { start: '', end: '' },
+                    winter: { start: '', end: '' }
+                },
+                factory: {
+                    summer: { start: '', end: '' },
+                    winter: { start: '', end: '' }
+                }
+            });
+
+            // Monthly Event Options for Dropdown
+            const [monthlyEventOptions, setMonthlyEventOptions] = useState([]);
+
+            // Placeholder Text State
+            const [placeholderText, setPlaceholderText] = useState("");
+
+            // --- Server Image Assets (Mock Data) ---
+            const serverImages = {
+                hq: {
+                    label: "本社",
+                    options: [
+                        { id: 'hq_ext', name: '本社 外観 (晴れ)', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Headquarters+Exterior' },
+                        { id: 'hq_int', name: '本社 エントランス', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Headquarters+Entrance' },
+                        { id: 'hq_office', name: '本社 オフィス風景', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Headquarters+Office' }
+                    ]
+                },
+                factory: {
+                    label: "工場",
+                    options: [
+                        { id: 'fac_ext', name: '工場 外観', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Factory+Exterior' },
+                        { id: 'fac_line', name: '製造ライン (内装)', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Production+Line' },
+                        { id: 'fac_lab', name: '品質管理室 (内装)', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Quality+Control+Lab' }
+                    ]
+                },
+                other: {
+                    label: "その他",
+                    options: [
+                        { id: 'logo_color', name: 'ブランドロゴ (カラー)', url: 'https://placehold.co/600x400/EAEFF3/C11E2D?text=Hikari+Logo' },
+                        { id: 'sky', name: '青空イメージ', url: 'https://placehold.co/600x400/87CEEB/ffffff?text=Sky+Image' }
+                    ]
+                }
+            };
+
+            // Public Holidays
+            const publicHolidays = {
+                1: ["元日", "成人の日"],
+                2: ["建国記念の日", "天皇誕生日"],
+                3: ["春分の日"],
+                4: ["昭和の日"],
+                5: ["憲法記念日", "みどりの日", "こどもの日"],
+                6: [],
+                7: ["海の日"],
+                8: ["山の日"],
+                9: ["敬老の日", "秋分の日"],
+                10: ["スポーツの日"],
+                11: ["文化の日", "勤労感謝の日"],
+                12: []
+            };
 
             // Branding Messages
             const brandingMessages = {
@@ -132,7 +200,44 @@
                 partner: {
                     short: "“つくる力”を、医薬品開発に活かしませんか？",
                     long: "確かな技術力と、柔軟な対応力で、医薬品開発の課題を解決します。\n共に目指すのは、世界中の人々の健康への貢献。\n信頼できるパートナーとして、貴社のビジネスを強力にサポートいたします。"
+                },
+                csr: {
+                    short: "地域と共に、健やかな未来を育む。",
+                    long: "私たちは、薬を作るだけでなく、健やかな社会を作る企業でありたい。\n環境への配慮、地域との連携を通じて、持続可能な未来への責任を果たします。\n次世代に誇れる社会を、ここから。"
                 }
+            };
+
+            const replyPatterns = {
+                general: [
+                    { label: "感謝", text: "温かいコメントありがとうございます！チーム一同、励みになります。" },
+                    { label: "共感", text: "そのように感じていただけて嬉しいです。これからも「やさしさ」を大切にしていきます。" },
+                    { label: "案内", text: "ありがとうございます。詳細につきましては、ぜひ公式サイトもご覧ください。" }
+                ],
+                patient: [
+                    { label: "寄り添い", text: "コメントありがとうございます。皆様の安心につながるよう、引き続き情報を発信してまいります。" },
+                    { label: "気遣い", text: "季節の変わり目ですので、どうぞご自愛ください。いつもご覧いただきありがとうございます。" },
+                    { label: "問い合わせ", text: "ご不明な点がございましたら、公式サイトのお問い合わせフォームよりお気軽にご連絡ください。" }
+                ],
+                medical: [
+                    { label: "御礼", text: "いつも医療の最前線でのご尽力、心より敬意を表します。コメントありがとうございます。" },
+                    { label: "サポート", text: "貴重なご意見ありがとうございます。今後の情報提供の改善に役立ててまいります。" },
+                    { label: "連携", text: "現場の声をいただき感謝いたします。信頼されるパートナーであり続けられるよう、努めてまいります。" }
+                ],
+                recruit: [
+                    { label: "歓迎", text: "ご興味を持っていただき嬉しいです！一緒に未来を創れることを楽しみにしています。" },
+                    { label: "応援", text: "ありがとうございます。就職活動、応援しています！何かあれば説明会などでご質問ください。" },
+                    { label: "誘導", text: "詳細な募集要項は、採用サイトにて公開しております。ぜひチェックしてみてください。" }
+                ],
+                partner: [
+                    { label: "感謝", text: "いつもお世話になっております。コメントいただきありがとうございます。" },
+                    { label: "協業", text: "共に新しい価値を創造できることを楽しみにしております。今後ともよろしくお願いいたします。" },
+                    { label: "信頼", text: "温かいお言葉ありがとうございます。確かな技術でお応えできるよう、邁進してまいります。" }
+                ],
+                csr: [
+                    { label: "支援", text: "温かいご支援ありがとうございます。地域社会の一員として、これからも貢献してまいります。" },
+                    { label: "共感", text: "活動への共感、大変嬉しく思います。持続可能な社会を目指し、共に歩んでいきましょう。" },
+                    { label: "報告", text: "ご覧いただきありがとうございます。活動の詳細はサステナビリティレポートでもご報告しております。" }
+                ]
             };
 
             const imageSuggestionData = {
@@ -153,7 +258,60 @@
                 product: ["#品質管理", "#安定供給", "#ものづくり"]
             };
 
-            // NG Word Check Logic
+            // Category Placeholders
+            const categoryPlaceholders = {
+                company: "例：創業〇周年を迎え、記念式典を行いました。\n例：社内レクリエーションでチームワークを深めました。",
+                academic: "例：第20回 日本医学会総会に参加し、新薬の研究成果を発表しました。\n例：〇〇学会にて、当社の研究員が優秀賞を受賞しました。",
+                csr: "例：地域の清掃活動に参加し、近隣住民の方々と交流しました。\n例：CO2削減に向けた新しい取り組みを開始しました。",
+                recruit: "例：202X年度の新入社員を迎え、入社式を執り行いました。\n例：先輩社員インタビュー動画を公開しました。",
+                product: "例：主力製品「〇〇」のパッケージをリニューアルし、視認性を向上させました。\n例：新工場での製造ラインが稼働を開始し、安定供給体制を強化しました。"
+            };
+
+            // Update placeholder when category changes
+            useEffect(() => {
+                setPlaceholderText(categoryPlaceholders[category] || "詳細内容を入力してください");
+            }, [category]);
+
+            // Calculate Monthly Events
+            useEffect(() => {
+                let options = [];
+                const holidays = publicHolidays[selectedMonth] || [];
+                holidays.forEach(h => options.push({ label: `祝日: ${h}`, value: `${h}のお知らせ` }));
+
+                const fmt = (d) => {
+                    if(!d) return "";
+                    const date = new Date(d);
+                    return `${date.getMonth()+1}/${date.getDate()}`;
+                };
+
+                const checkHoliday = (setting, label) => {
+                    if (setting.start) {
+                        const startDate = new Date(setting.start);
+                        if (startDate.getMonth() + 1 === selectedMonth) {
+                            const range = `${fmt(setting.start)}〜${fmt(setting.end)}`;
+                            options.push({ label: `${label} (${range})`, value: `${label} (${range})` });
+                        }
+                    }
+                };
+
+                checkHoliday(holidaySettings.hq.summer, "本社夏季休暇");
+                checkHoliday(holidaySettings.hq.winter, "本社冬季休暇");
+                checkHoliday(holidaySettings.factory.summer, "工場夏季休暇");
+                checkHoliday(holidaySettings.factory.winter, "工場冬季休暇");
+
+                setMonthlyEventOptions(options);
+
+            }, [selectedMonth, holidaySettings]);
+
+            const handleEventSelect = (e) => {
+                const val = e.target.value;
+                if (!val) return;
+                setEventDetail(prev => {
+                    if (prev.includes(val)) return prev;
+                    return prev + (prev ? "\n" : "") + val;
+                });
+            };
+
             useEffect(() => {
                 if (!eventDetail) {
                     setNgWarnings([]);
@@ -164,7 +322,6 @@
                 setNgWarnings(detected);
             }, [eventDetail, ngWordsStr]);
 
-            // Dark Mode Class Handling
             useEffect(() => {
                 if (isDarkMode) {
                     document.documentElement.classList.add('dark');
@@ -184,6 +341,7 @@
                 const monthStr = `${selectedMonth}月`;
                 const intro = showGreeting ? getSeasonalIntro(monthStr) : "";
                 
+                // Branding Block (Choose long version for FB/Insta to be more impactful)
                 const brandingBlock = brandingMessages[stakeholder].long;
                 const shortBranding = brandingMessages[stakeholder].short;
 
@@ -192,16 +350,18 @@
                 ? `\n━━━━━━━━━━━━━━\n【${topicHeader}】\n${eventDetail}\n━━━━━━━━━━━━━━\n` 
                 : '';
 
-                // FB: Added Signature from settings
+                // FB Text
                 const fbText = `${intro ? intro + "\n\n" : ""}${mainBody}\n${brandingBlock}\n\n私たち光製薬は、これからも医療の未来を照らし続けます。\n\n----------------------------\n${signature}\n----------------------------\n\n${allHashtags}`;
 
-                const instaText = `${intro ? intro + "\n\n" : ""}${eventDetail ? `${eventDetail}\n\n` : ''}..\n\n${brandingBlock}\n\n私たちの日々の取り組みや、想いを発信しています。\nぜひフォローして、光製薬の「今」に触れてください。\n\n🔗 詳しくはプロフィール（@hikari_pharma_official）のリンクへ\n\n${allHashtags}`;
+                // Insta Text (Modified based on request and dynamic link)
+                const instaFooter = `\n私たちの日々の取り組みや、想いを発信しています。\nぜひフォローして、光製薬の「今」に触れてください。\n\n🔗 ${customLinkText}`;
+                const instaText = `${intro ? intro + "\n\n" : ""}${eventDetail ? `${eventDetail}\n\n` : ''}..\n\n${brandingBlock}\n${instaFooter}\n\n${allHashtags}`;
 
+                // X Text
                 const xText = `【${monthStr}のお知らせ】\n\n${shortBranding}\n\n${eventDetail}\n\n${showGreeting ? "季節の変わり目、皆様もご自愛ください。\n" : ""}#光製薬 #Vision2030`; 
 
                 setGeneratedText({ fb: fbText, insta: instaText, x: xText });
                 setImageSuggestion(imageSuggestionData[category] || "内容に合わせた清潔感のある写真");
-                setCopiedState({ fb: false, insta: false, x: false });
             };
 
             const getSeasonalIntro = (month) => {
@@ -222,31 +382,176 @@
                 return greetings[selectedMonth] || `${month}を迎え、気持ちを新たに業務に取り組んでいます。`;
             };
 
-            const handleCopy = (platform) => {
-                navigator.clipboard.writeText(generatedText[platform]);
-                setCopiedState({ ...copiedState, [platform]: true });
-                setTimeout(() => setCopiedState({ ...copiedState, [platform]: false }), 2000);
+            const handleCopy = (text) => {
+                const showSuccess = () => {
+                    setCopiedState(prev => ({ ...prev, [activeTab]: true }));
+                    setTimeout(() => setCopiedState(prev => ({ ...prev, [activeTab]: false })), 2000);
+                };
+
+                const copyToClipboardFallback = (str) => {
+                    const el = document.createElement('textarea');
+                    el.value = str;
+                    el.setAttribute('readonly', '');
+                    el.style.position = 'absolute';
+                    el.style.left = '-9999px';
+                    document.body.appendChild(el);
+                    
+                    const selected = 
+                        document.getSelection().rangeCount > 0 
+                            ? document.getSelection().getRangeAt(0) 
+                            : false;
+                    el.select();
+                    
+                    let successful = false;
+                    try {
+                        successful = document.execCommand('copy');
+                    } catch (err) {
+                        console.error('Fallback copy failed', err);
+                    }
+                    
+                    document.body.removeChild(el);
+                    if (selected) {
+                        document.getSelection().removeAllRanges();
+                        document.getSelection().addRange(selected);
+                    }
+                    return successful;
+                };
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text)
+                        .then(showSuccess)
+                        .catch(err => {
+                            console.warn("Clipboard API failed, using fallback", err);
+                            if(copyToClipboardFallback(text)) {
+                                showSuccess();
+                            } else {
+                                alert("コピーに失敗しました。手動でコピーしてください。");
+                            }
+                        });
+                } else {
+                    if(copyToClipboardFallback(text)) {
+                        showSuccess();
+                    } else {
+                        alert("コピーに失敗しました。手動でコピーしてください。");
+                    }
+                }
             };
 
-            // Reset Function
             const handleReset = () => {
                 if(window.confirm("入力内容をリセットしますか？")) {
                     setEventDetail("");
                     setCategory("company");
                     setSelectedMonth(new Date().getMonth() + 1);
                     setStakeholder("general");
+                    setSelectedImage(null);
                 }
+            };
+
+            const handleHolidayChange = (location, type, key, value) => {
+                setHolidaySettings(prev => ({
+                    ...prev,
+                    [location]: {
+                        ...prev[location],
+                        [type]: {
+                            ...prev[location][type],
+                            [key]: value
+                        }
+                    }
+                }));
             };
 
             useEffect(() => {
                 generateContent();
-            }, [selectedMonth, category, eventDetail, stakeholder, signature, showGreeting]);
+            }, [selectedMonth, category, eventDetail, stakeholder, signature, showGreeting, customLinkText]);
+
+            const renderImageSelection = () => (
+                <div className="bg-hikari-base dark:bg-gray-800 p-4 border-t border-slate-200 dark:border-gray-700 animate-fade-in">
+                    <div className="mb-4 bg-white dark:bg-gray-700 border-2 border-dashed border-slate-300 dark:border-gray-500 rounded-lg p-3 flex items-start gap-3">
+                        <div className="bg-red-50 dark:bg-red-900/50 text-hikari-accent p-2 rounded-full shrink-0">
+                            <ImageIcon size={20} />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-sm mb-1 text-gray-700 dark:text-gray-200">おすすめの画像構成</h3>
+                            <p className="text-xs leading-relaxed opacity-80 whitespace-pre-wrap">
+                                {imageSuggestion}
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-sm mb-2 flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                            <ImagePlus size={16} className="text-hikari-accent"/>
+                            会社のサーバーから画像を選択
+                        </h3>
+                        <div className="space-y-3">
+                            {Object.entries(serverImages).map(([key, group]) => (
+                                <div key={key}>
+                                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{group.label}</h4>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {group.options.map((img) => (
+                                            <button
+                                                key={img.id}
+                                                onClick={() => setSelectedImage(img)}
+                                                className={`relative rounded-lg overflow-hidden border-2 transition-all aspect-video group
+                                                    ${selectedImage?.id === img.id 
+                                                        ? 'border-hikari-accent ring-2 ring-hikari-accent/30' 
+                                                        : 'border-transparent hover:border-gray-300'}`}
+                                            >
+                                                <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="text-[10px] text-white font-bold bg-black/50 px-1 rounded">{img.name}</span>
+                                                </div>
+                                                {selectedImage?.id === img.id && (
+                                                    <div className="absolute top-1 right-1 bg-hikari-accent text-white rounded-full p-0.5">
+                                                        <Check size={10} />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderReplyExamples = () => {
+                const patterns = replyPatterns[stakeholder] || replyPatterns['general'];
+                return (
+                    <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 animate-fade-in border-b border-slate-200 dark:border-gray-700">
+                        <h3 className="font-bold text-sm mb-3 flex items-center gap-2 text-hikari-text dark:text-gray-300">
+                            <MessageCircle size={16} className="text-hikari-accent" />
+                            コメントへの返信例 
+                            <span className="text-[10px] font-normal opacity-70">（クリックでコピー）</span>
+                        </h3>
+                        <div className="space-y-2">
+                            {patterns.map((pattern, idx) => (
+                                <button 
+                                    key={idx}
+                                    onClick={() => handleCopy(pattern.text)}
+                                    className="w-full text-left p-3 bg-white dark:bg-gray-700 rounded border border-slate-200 dark:border-gray-600 hover:border-hikari-accent dark:hover:border-hikari-accent group transition-all"
+                                >
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-[10px] font-bold bg-slate-100 dark:bg-gray-600 text-slate-600 dark:text-gray-300 px-2 py-0.5 rounded">
+                                            {pattern.label}
+                                        </span>
+                                        <span className="text-[10px] text-hikari-accent opacity-0 group-hover:opacity-100 transition-opacity">
+                                            コピーする
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-gray-700 dark:text-gray-200 leading-relaxed">
+                                        {pattern.text}
+                                    </p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            };
 
             return (
-                // Theme colors handled by Tailwind dark mode classes
                 <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${isDarkMode ? 'text-hikari-darkText' : 'text-hikari-text'}`}>
                 
-                {/* Mobile Sticky Header */}
                 <div className="sticky top-0 z-10 bg-white dark:bg-hikari-darkCard border-b border-hikari-accent/20 shadow-sm px-4 py-3 flex items-center justify-between md:hidden">
                     <div className="flex items-center gap-2">
                         <img src="rogo.jpg" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
@@ -260,7 +565,6 @@
 
                 <div className="max-w-4xl mx-auto p-4 md:p-8">
                     
-                    {/* Desktop Header */}
                     <header className="hidden md:flex mb-8 border-b-4 border-hikari-accent pb-4 bg-white dark:bg-hikari-darkCard p-6 rounded-t-xl shadow-sm items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="h-16 w-auto flex items-center">
@@ -294,29 +598,51 @@
                     {/* Controls Section */}
                     <div className="space-y-4">
                         
-                        {/* 1. Month Selection */}
                         <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
                             <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent">
                                 <Calendar size={20} />
                                 投稿時期
                             </h2>
-                            <div className="relative">
-                                <select 
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                                className="w-full appearance-none p-3 pl-4 pr-10 bg-hikari-base dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg text-lg font-medium focus:ring-2 focus:ring-hikari-accent outline-none cursor-pointer"
-                                >
-                                {[...Array(12)].map((_, i) => (
-                                    <option key={i} value={i + 1}>{i + 1}月</option>
-                                ))}
-                                </select>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
-                                <ChevronDown size={20} />
+                            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                                <div className="relative w-full md:w-1/3">
+                                    <select 
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                                    className="w-full appearance-none p-3 pl-4 pr-10 bg-hikari-base dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg text-lg font-medium focus:ring-2 focus:ring-hikari-accent outline-none cursor-pointer"
+                                    >
+                                    {[...Array(12)].map((_, i) => (
+                                        <option key={i} value={i + 1}>{i + 1}月</option>
+                                    ))}
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
+                                    <ChevronDown size={20} />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex-1 w-full">
+                                     <div className="relative">
+                                        <select 
+                                            onChange={handleEventSelect}
+                                            className="w-full appearance-none p-3 pl-4 pr-10 bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-600 rounded-lg text-sm font-medium text-blue-800 dark:text-blue-200 focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+                                            value=""
+                                        >
+                                            <option value="">行事を選択して本文に追加</option>
+                                            {monthlyEventOptions.length > 0 ? (
+                                                monthlyEventOptions.map((opt, idx) => (
+                                                    <option key={idx} value={opt.value}>{opt.label}</option>
+                                                ))
+                                            ) : (
+                                                <option disabled>この月の行事設定はありません</option>
+                                            )}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-blue-500 dark:text-blue-300">
+                                            <ChevronDown size={16} />
+                                        </div>
+                                     </div>
                                 </div>
                             </div>
                         </section>
 
-                        {/* 2. Target Stakeholder */}
                         <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
                             <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent">
                                 <Users size={20} />
@@ -329,6 +655,7 @@
                                 { id: 'medical', label: '医療関係者', desc: '信頼と確かな情報' },
                                 { id: 'recruit', label: '採用候補者', desc: '未来へのヒカリ' },
                                 { id: 'partner', label: 'パートナー企業', desc: 'CDMO・確信' },
+                                { id: 'csr', label: '地域・社会 (CSR)', desc: '持続可能な未来・貢献' },
                                 ].map((item) => (
                                 <button
                                     key={item.id}
@@ -346,7 +673,6 @@
                             </div>
                         </section>
 
-                        {/* 3. Event Category & Details */}
                         <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
                             <div className="flex justify-between items-center mb-3">
                                 <h2 className="flex items-center gap-2 font-bold text-base text-hikari-accent">
@@ -390,7 +716,7 @@
                                 <textarea
                                     value={eventDetail}
                                     onChange={(e) => setEventDetail(e.target.value)}
-                                    placeholder="例：第20回 日本医学会総会に参加しました。ブースでは新薬の展示を行い、多くの先生方にお立ち寄りいただきました。"
+                                    placeholder={placeholderText}
                                     className="w-full p-3 border bg-white dark:bg-gray-800 border-slate-300 dark:border-gray-600 rounded-lg h-32 text-sm focus:ring-2 focus:ring-hikari-accent outline-none resize-none"
                                 />
                                 {ngWarnings.length > 0 && (
@@ -414,92 +740,138 @@
 
                     </div>
 
-                    {/* Preview Section */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 mb-2">
                         <h2 className="font-bold text-xl">プレビュー</h2>
                         <span className="text-xs bg-hikari-base dark:bg-gray-700 px-2 py-1 rounded-full border border-slate-200 dark:border-gray-600">コピーして使用</span>
                         </div>
-
-                        {/* Instagram Card */}
-                        <div className="border border-slate-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-hikari-darkCard">
-                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-3 flex justify-between items-center">
-                            <span className="font-bold flex items-center gap-2"><Camera size={18}/> Instagram</span>
-                            <button 
-                            onClick={() => handleCopy('insta')}
-                            className="flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
-                            >
-                            {copiedState.insta ? <Check size={14} /> : <Copy size={14} />}
-                            {copiedState.insta ? '完了' : 'コピー'}
-                            </button>
-                        </div>
                         
-                        {/* Image Suggestion */}
-                        <div className="bg-hikari-base dark:bg-gray-800 p-4 border-b border-slate-200 dark:border-gray-700">
-                            <div className="bg-white dark:bg-gray-700 border-2 border-dashed border-slate-300 dark:border-gray-500 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                            <div className="bg-red-50 dark:bg-red-900/50 text-hikari-accent p-2 rounded-full mb-2">
-                                <Camera size={24} />
-                            </div>
-                            <h3 className="font-bold text-sm mb-1">おすすめの画像構成</h3>
-                            <p className="text-xs leading-relaxed whitespace-pre-wrap opacity-80">
-                                {imageSuggestion}
-                            </p>
-                            </div>
+                        <div className="flex bg-white dark:bg-hikari-darkCard rounded-t-xl overflow-hidden border-b border-gray-200 dark:border-gray-700">
+                             <button 
+                                onClick={() => setActiveTab('insta')}
+                                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors
+                                ${activeTab === 'insta' 
+                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                             >
+                                <Camera size={16} /> Instagram
+                             </button>
+                             <button 
+                                onClick={() => setActiveTab('fb')}
+                                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors
+                                ${activeTab === 'fb' 
+                                    ? 'bg-[#1877F2] text-white' 
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                             >
+                                <Facebook size={16} /> Facebook
+                             </button>
+                             <button 
+                                onClick={() => setActiveTab('x')}
+                                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors
+                                ${activeTab === 'x' 
+                                    ? 'bg-black text-white' 
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                             >
+                                <Twitter size={16} /> X (Twitter)
+                             </button>
+                             {/* Reply Tab Added */}
+                             <button 
+                                onClick={() => setActiveTab('reply')}
+                                className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors
+                                ${activeTab === 'reply' 
+                                    ? 'bg-green-600 text-white' 
+                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                             >
+                                <MessageCircle size={16} /> 返信例
+                             </button>
                         </div>
 
-                        <div className="p-4">
-                            <div className="bg-white dark:bg-gray-800 p-4 rounded border border-slate-100 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed h-64 overflow-y-auto">
-                                {generatedText.insta}
-                            </div>
-                        </div>
-                        </div>
+                        <div className="border border-t-0 border-slate-200 dark:border-gray-700 rounded-b-xl overflow-hidden shadow-sm bg-white dark:bg-hikari-darkCard min-h-[300px]">
+                            
+                            {/* Copy Bar (Only for Post tabs) */}
+                            {activeTab !== 'reply' && (
+                                <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-3 flex justify-between items-center border-b border-gray-100 dark:border-gray-700">
+                                    <span className="font-bold text-sm text-gray-500 dark:text-gray-400">
+                                        {activeTab === 'insta' && 'Instagram 投稿用'}
+                                        {activeTab === 'fb' && 'Facebook 投稿用'}
+                                        {activeTab === 'x' && 'X (旧Twitter) 投稿用'}
+                                    </span>
+                                    <button 
+                                    onClick={() => handleCopy(generatedText[activeTab])}
+                                    className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-colors font-bold text-white shadow-sm
+                                        ${activeTab === 'insta' ? 'bg-pink-500 hover:bg-pink-600' : 
+                                        activeTab === 'fb' ? 'bg-blue-600 hover:bg-blue-700' : 
+                                        'bg-gray-800 hover:bg-black'}`}
+                                    >
+                                    {copiedState[activeTab] ? <Check size={14} /> : <Copy size={14} />}
+                                    {copiedState[activeTab] ? '完了' : 'コピー'}
+                                    </button>
+                                </div>
+                            )}
 
-                        {/* Facebook Card */}
-                        <div className="border border-slate-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-hikari-darkCard">
-                        <div className="bg-[#1877F2] text-white px-4 py-3 flex justify-between items-center">
-                            <span className="font-bold flex items-center gap-2">Facebook</span>
-                            <button 
-                            onClick={() => handleCopy('fb')}
-                            className="flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
-                            >
-                            {copiedState.fb ? <Check size={14} /> : <Copy size={14} />}
-                            {copiedState.fb ? '完了' : 'コピー'}
-                            </button>
-                        </div>
-                        <div className="p-4">
-                            <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
-                            {generatedText.fb}
-                            </div>
-                        </div>
-                        </div>
+                            {activeTab === 'insta' && (
+                                <div className="p-4 animate-fade-in">
+                                    <div className="flex flex-col gap-4 mb-4">
+                                        <div className="w-full bg-white dark:bg-gray-800 p-4 rounded border border-slate-100 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
+                                            {generatedText.insta}
+                                        </div>
+                                        {selectedImage && (
+                                            <div className="w-full max-w-sm mx-auto aspect-square bg-slate-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-slate-200 dark:border-gray-600">
+                                                <img src={selectedImage.url} alt="Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
-                        {/* X Card */}
-                        <div className="border border-slate-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-hikari-darkCard">
-                        <div className="bg-black text-white px-4 py-3 flex justify-between items-center">
-                            <span className="font-bold flex items-center gap-2">X (旧Twitter)</span>
-                            <button 
-                            onClick={() => handleCopy('x')}
-                            className="flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm"
-                            >
-                            {copiedState.x ? <Check size={14} /> : <Copy size={14} />}
-                            {copiedState.x ? '完了' : 'コピー'}
-                            </button>
-                        </div>
-                        <div className="p-4">
-                            <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
-                            {generatedText.x}
-                            </div>
-                            <div className="mt-2 text-right text-xs opacity-60">
-                            {generatedText.x.length} 文字
-                            </div>
-                        </div>
-                        </div>
+                            {activeTab === 'fb' && (
+                                <div className="p-4 animate-fade-in">
+                                    <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed mb-4">
+                                        {generatedText.fb}
+                                    </div>
+                                    {selectedImage && (
+                                        <div className="mb-4 rounded-lg overflow-hidden border border-slate-200 dark:border-gray-600">
+                                            <img src={selectedImage.url} alt="FB Preview" className="w-full h-48 object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
+                            {activeTab === 'x' && (
+                                <div className="p-4 animate-fade-in">
+                                    <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed mb-2">
+                                        {generatedText.x}
+                                    </div>
+                                    <div className="mt-2 mb-4 text-right text-xs opacity-60">
+                                        {generatedText.x.length} 文字
+                                    </div>
+                                    {selectedImage && (
+                                        <div className="mb-4 rounded-xl overflow-hidden border border-slate-200 dark:border-gray-600">
+                                            <img src={selectedImage.url} alt="X Preview" className="w-full h-48 object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Reply Tab Content */}
+                            {activeTab === 'reply' && (
+                                <div className="animate-fade-in">
+                                    <div className="bg-green-50 dark:bg-green-900/20 px-4 py-3 border-b border-green-100 dark:border-green-800/30 flex items-center gap-2">
+                                        <MessageCircle size={18} className="text-green-600 dark:text-green-400" />
+                                        <span className="font-bold text-sm text-green-800 dark:text-green-200">コメントへの返信例</span>
+                                    </div>
+                                    {renderReplyExamples()}
+                                </div>
+                            )}
+
+                            {/* Image Selection Area (Show for all tabs) */}
+                            {renderImageSelection()}
+
+                        </div>
                     </div>
                     </div>
                 </div>
 
-                {/* --- Help Modal --- */}
                 {isHelpOpen && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                         <div className="bg-white dark:bg-hikari-darkCard w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-fade-in">
@@ -539,8 +911,8 @@
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">4</div>
                                         <div>
-                                            <p className="font-bold text-sm">コピーして投稿</p>
-                                            <p className="text-xs opacity-70">各SNSの「コピー」ボタンを押して貼り付けるだけ。</p>
+                                            <p className="font-bold text-sm">タブを選んでコピー</p>
+                                            <p className="text-xs opacity-70">投稿したいSNSのタブを選び、コピーボタンを押すだけ。返信例もご活用ください。</p>
                                         </div>
                                     </div>
                                 </div>
@@ -552,7 +924,6 @@
                     </div>
                 )}
 
-                {/* --- Settings Modal --- */}
                 {isSettingsOpen && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                         <div className="bg-white dark:bg-hikari-darkCard w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -566,7 +937,6 @@
                             
                             <div className="p-6 space-y-6 overflow-y-auto">
                                 
-                                {/* Dark Mode Toggle */}
                                 <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
                                     <div className="flex items-center gap-2">
                                         {isDarkMode ? <Moon size={20} className="text-yellow-400"/> : <Sun size={20} className="text-orange-400"/>}
@@ -580,7 +950,6 @@
                                     </button>
                                 </div>
 
-                                {/* Greeting Toggle */}
                                 <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
                                     <div>
                                         <p className="font-bold text-sm">季節の挨拶文</p>
@@ -594,8 +963,131 @@
                                     </button>
                                 </div>
 
-                                {/* Signature Edit */}
-                                <div className="space-y-2">
+                                <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                    <h4 className="font-bold text-sm flex items-center gap-2 text-hikari-accent">
+                                        <Calendar size={16} /> 会社休日・行事設定
+                                    </h4>
+                                    
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg space-y-3">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Building size={16} className="text-gray-500" />
+                                            <span className="text-xs font-bold">本社 休暇設定</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">夏季休暇 開始</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.hq.summer.start}
+                                                    onChange={(e) => handleHolidayChange('hq', 'summer', 'start', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">終了</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.hq.summer.end}
+                                                    onChange={(e) => handleHolidayChange('hq', 'summer', 'end', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">冬季休暇 開始</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.hq.winter.start}
+                                                    onChange={(e) => handleHolidayChange('hq', 'winter', 'start', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">終了</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.hq.winter.end}
+                                                    onChange={(e) => handleHolidayChange('hq', 'winter', 'end', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg space-y-3">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Factory size={16} className="text-gray-500" />
+                                            <span className="text-xs font-bold">工場 休暇設定</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">夏季休暇 開始</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.factory.summer.start}
+                                                    onChange={(e) => handleHolidayChange('factory', 'summer', 'start', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">終了</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.factory.summer.end}
+                                                    onChange={(e) => handleHolidayChange('factory', 'summer', 'end', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">冬季休暇 開始</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.factory.winter.start}
+                                                    onChange={(e) => handleHolidayChange('factory', 'winter', 'start', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold block mb-1">終了</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={holidaySettings.factory.winter.end}
+                                                    onChange={(e) => handleHolidayChange('factory', 'winter', 'end', e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Link Settings (Added) */}
+                                <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                    <h4 className="font-bold text-sm flex items-center gap-2 text-hikari-accent">
+                                        <Link size={16} /> リンク設定
+                                    </h4>
+                                    <div>
+                                        <label className="text-[10px] font-bold block mb-1">リンク先のURL (お客様のURL)</label>
+                                        <input 
+                                            type="text" 
+                                            value={customLinkUrl}
+                                            onChange={(e) => setCustomLinkUrl(e.target.value)}
+                                            className="w-full p-2 border bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-1 focus:ring-hikari-accent outline-none"
+                                            placeholder="https://..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold block mb-1">表示させるURL (投稿用テキスト)</label>
+                                        <input 
+                                            type="text" 
+                                            value={customLinkText}
+                                            onChange={(e) => setCustomLinkText(e.target.value)}
+                                            className="w-full p-2 border bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-1 focus:ring-hikari-accent outline-none"
+                                            placeholder="例：詳しくはプロフィールのリンクへ"
+                                        />
+                                        <p className="text-[10px] opacity-60 mt-1">※Instagramの投稿文末尾に表示されます</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-700">
                                     <label className="font-bold text-sm block">署名（フッター）の編集</label>
                                     <textarea 
                                         value={signature}
@@ -605,7 +1097,6 @@
                                     <p className="text-xs opacity-60">※Facebook投稿の末尾に挿入されます</p>
                                 </div>
 
-                                {/* NG Words */}
                                 <div className="space-y-2">
                                     <label className="font-bold text-sm block">簡易NGワード登録</label>
                                     <input 
