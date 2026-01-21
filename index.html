@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hikariブランドジェネレーター</title>
+    <title>Hikari Brand Note</title>
     <!-- デザイン用：Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React本体 -->
@@ -86,7 +86,8 @@
         const Building = (p) => <Icon {...p}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></Icon>;
         const Factory = (p) => <Icon {...p}><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></Icon>;
         const Link = (p) => <Icon {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></Icon>;
-
+        const Folder = (p) => <Icon {...p}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 2H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></Icon>;
+        const ArrowLeft = (p) => <Icon {...p}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></Icon>;
 
         // --- アプリケーション本体 ---
         const HikariSnsGenerator = () => {
@@ -104,6 +105,9 @@
             
             // Image Selection State
             const [selectedImage, setSelectedImage] = useState(null);
+            
+            // Image Browser State
+            const [imgBrowserPath, setImgBrowserPath] = useState([]); // ['hq'] -> ['hq', 'ext'] etc.
             
             // Settings State
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -136,32 +140,99 @@
             // Placeholder Text State
             const [placeholderText, setPlaceholderText] = useState("");
 
-            // --- Server Image Assets (Mock Data) ---
-            const serverImages = {
-                hq: {
-                    label: "本社",
-                    options: [
-                        { id: 'hq_ext', name: '本社 外観 (晴れ)', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Headquarters+Exterior' },
-                        { id: 'hq_int', name: '本社 エントランス', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Headquarters+Entrance' },
-                        { id: 'hq_office', name: '本社 オフィス風景', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Headquarters+Office' }
-                    ]
-                },
-                factory: {
-                    label: "工場",
-                    options: [
-                        { id: 'fac_ext', name: '工場 外観', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Factory+Exterior' },
-                        { id: 'fac_line', name: '製造ライン (内装)', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Production+Line' },
-                        { id: 'fac_lab', name: '品質管理室 (内装)', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Quality+Control+Lab' }
-                    ]
-                },
-                other: {
-                    label: "その他",
-                    options: [
-                        { id: 'logo_color', name: 'ブランドロゴ (カラー)', url: 'https://placehold.co/600x400/EAEFF3/C11E2D?text=Hikari+Logo' },
-                        { id: 'sky', name: '青空イメージ', url: 'https://placehold.co/600x400/87CEEB/ffffff?text=Sky+Image' }
-                    ]
-                }
+            // --- Server Image Assets Data Structure (Hierarchical) ---
+            const imageDatabase = {
+                id: 'root',
+                name: 'root',
+                type: 'folder',
+                children: [
+                    {
+                        id: 'hq',
+                        name: '本社',
+                        type: 'folder',
+                        icon: <Building />,
+                        children: [
+                            {
+                                id: 'hq_ext',
+                                name: '外観',
+                                type: 'folder',
+                                children: [
+                                    { id: 'hq_ext_sunny', name: '本社 外観 (晴れ)', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=HQ+Exterior+(Sunny)' },
+                                    { id: 'hq_ext_night', name: '本社 外観 (夜景)', type: 'image', url: 'https://placehold.co/600x400/1f2937/EAEFF3?text=HQ+Exterior+(Night)' },
+                                    { id: 'hq_ext_entrance', name: '正面玄関', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Main+Entrance' }
+                                ]
+                            },
+                            {
+                                id: 'hq_int',
+                                name: '内観',
+                                type: 'folder',
+                                children: [
+                                    { id: 'hq_int_lobby', name: 'エントランスホール', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Entrance+Hall' },
+                                    { id: 'hq_int_office', name: 'オフィス風景', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Office+View' },
+                                    { id: 'hq_int_meeting', name: '会議室', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Meeting+Room' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 'factory',
+                        name: '工場',
+                        type: 'folder',
+                        icon: <Factory />,
+                        children: [
+                            {
+                                id: 'fac_ext',
+                                name: '外観',
+                                type: 'folder',
+                                children: [
+                                    { id: 'fac_ext_main', name: '工場 全景', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Factory+Full+View' },
+                                    { id: 'fac_ext_gate', name: '工場 正門', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Factory+Gate' }
+                                ]
+                            },
+                            {
+                                id: 'fac_int',
+                                name: '内観',
+                                type: 'folder',
+                                children: [
+                                    { id: 'fac_int_line', name: '製造ライン', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Production+Line' },
+                                    { id: 'fac_int_lab', name: '品質管理室', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=QC+Lab' },
+                                    { id: 'fac_int_warehouse', name: '物流倉庫', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/626262?text=Warehouse' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 'other',
+                        name: 'その他素材',
+                        type: 'folder',
+                        icon: <ImageIcon />,
+                        children: [
+                            { id: 'logo_color', name: 'ブランドロゴ (カラー)', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/C11E2D?text=Hikari+Logo' },
+                            { id: 'sky', name: '青空イメージ', type: 'image', url: 'https://placehold.co/600x400/87CEEB/ffffff?text=Sky+Image' }
+                        ]
+                    }
+                ]
             };
+
+            // Helper to get current folder content based on path
+            const getCurrentFolder = () => {
+                let current = imageDatabase;
+                for (const pathId of imgBrowserPath) {
+                    if (current.children) {
+                        current = current.children.find(child => child.id === pathId);
+                    }
+                }
+                return current;
+            };
+
+            const navigateToFolder = (folderId) => {
+                setImgBrowserPath([...imgBrowserPath, folderId]);
+            };
+
+            const navigateUp = () => {
+                setImgBrowserPath(imgBrowserPath.slice(0, -1));
+            };
+
 
             // Public Holidays
             const publicHolidays = {
@@ -444,6 +515,7 @@
                     setSelectedMonth(new Date().getMonth() + 1);
                     setStakeholder("general");
                     setSelectedImage(null);
+                    setImgBrowserPath([]);
                 }
             };
 
@@ -464,56 +536,90 @@
                 generateContent();
             }, [selectedMonth, category, eventDetail, stakeholder, signature, showGreeting, customLinkText]);
 
-            const renderImageSelection = () => (
-                <div className="bg-hikari-base dark:bg-gray-800 p-4 border-t border-slate-200 dark:border-gray-700 animate-fade-in">
-                    <div className="mb-4 bg-white dark:bg-gray-700 border-2 border-dashed border-slate-300 dark:border-gray-500 rounded-lg p-3 flex items-start gap-3">
-                        <div className="bg-red-50 dark:bg-red-900/50 text-hikari-accent p-2 rounded-full shrink-0">
-                            <ImageIcon size={20} />
+            const renderImageSelection = () => {
+                const currentFolder = getCurrentFolder();
+                
+                return (
+                    <div className="bg-hikari-base dark:bg-gray-800 p-4 border-t border-slate-200 dark:border-gray-700 animate-fade-in">
+                        
+                        {/* Suggestion Text */}
+                        <div className="mb-4 bg-white dark:bg-gray-700 border-2 border-dashed border-slate-300 dark:border-gray-500 rounded-lg p-3 flex items-start gap-3">
+                            <div className="bg-red-50 dark:bg-red-900/50 text-hikari-accent p-2 rounded-full shrink-0">
+                                <ImageIcon size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-sm mb-1 text-gray-700 dark:text-gray-200">おすすめの画像構成</h3>
+                                <p className="text-xs leading-relaxed opacity-80 whitespace-pre-wrap">
+                                    {imageSuggestion}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-bold text-sm mb-1 text-gray-700 dark:text-gray-200">おすすめの画像構成</h3>
-                            <p className="text-xs leading-relaxed opacity-80 whitespace-pre-wrap">
-                                {imageSuggestion}
-                            </p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-sm mb-2 flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                            <ImagePlus size={16} className="text-hikari-accent"/>
-                            会社のサーバーから画像を選択
-                        </h3>
-                        <div className="space-y-3">
-                            {Object.entries(serverImages).map(([key, group]) => (
-                                <div key={key}>
-                                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">{group.label}</h4>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {group.options.map((img) => (
-                                            <button
-                                                key={img.id}
-                                                onClick={() => setSelectedImage(img)}
-                                                className={`relative rounded-lg overflow-hidden border-2 transition-all aspect-video group
-                                                    ${selectedImage?.id === img.id 
-                                                        ? 'border-hikari-accent ring-2 ring-hikari-accent/30' 
-                                                        : 'border-transparent hover:border-gray-300'}`}
-                                            >
-                                                <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <span className="text-[10px] text-white font-bold bg-black/50 px-1 rounded">{img.name}</span>
-                                                </div>
-                                                {selectedImage?.id === img.id && (
-                                                    <div className="absolute top-1 right-1 bg-hikari-accent text-white rounded-full p-0.5">
-                                                        <Check size={10} />
+
+                        {/* Image Browser */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg border border-slate-200 dark:border-gray-600 overflow-hidden">
+                            <div className="bg-gray-100 dark:bg-gray-700 p-2 flex items-center gap-2 border-b border-gray-200 dark:border-gray-600">
+                                {imgBrowserPath.length > 0 ? (
+                                    <button 
+                                        onClick={navigateUp}
+                                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </button>
+                                ) : (
+                                    <span className="p-1"><ImagePlus size={16} className="text-hikari-accent"/></span>
+                                )}
+                                <span className="font-bold text-sm text-gray-700 dark:text-gray-200">
+                                    {currentFolder.name === 'root' ? 'サーバー画像一覧' : currentFolder.name}
+                                </span>
+                            </div>
+                            
+                            <div className="p-3">
+                                {currentFolder.children && currentFolder.children.length > 0 ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        {currentFolder.children.map((item) => (
+                                            item.type === 'folder' ? (
+                                                // Folder Item
+                                                <button
+                                                    key={item.id}
+                                                    onClick={() => navigateToFolder(item.id)}
+                                                    className="flex flex-col items-center justify-center p-4 bg-blue-50 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 rounded-lg transition-colors gap-2 h-24"
+                                                >
+                                                    <div className="text-blue-500 dark:text-blue-300">
+                                                        {item.icon || <Folder size={32} />}
                                                     </div>
-                                                )}
-                                            </button>
+                                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-200">{item.name}</span>
+                                                </button>
+                                            ) : (
+                                                // Image Item
+                                                <button
+                                                    key={item.id}
+                                                    onClick={() => setSelectedImage(item)}
+                                                    className={`relative rounded-lg overflow-hidden border-2 transition-all aspect-video group
+                                                        ${selectedImage?.id === item.id 
+                                                            ? 'border-hikari-accent ring-2 ring-hikari-accent/30' 
+                                                            : 'border-transparent hover:border-gray-300'}`}
+                                                >
+                                                    <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <span className="text-[10px] text-white font-bold bg-black/50 px-1 rounded">{item.name}</span>
+                                                    </div>
+                                                    {selectedImage?.id === item.id && (
+                                                        <div className="absolute top-1 right-1 bg-hikari-accent text-white rounded-full p-0.5">
+                                                            <Check size={10} />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            )
                                         ))}
                                     </div>
-                                </div>
-                            ))}
+                                ) : (
+                                    <div className="text-center py-4 text-xs opacity-50">画像がありません</div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            );
+                );
+            };
 
             const renderReplyExamples = () => {
                 const patterns = replyPatterns[stakeholder] || replyPatterns['general'];
@@ -555,7 +661,7 @@
                 <div className="sticky top-0 z-10 bg-white dark:bg-hikari-darkCard border-b border-hikari-accent/20 shadow-sm px-4 py-3 flex items-center justify-between md:hidden">
                     <div className="flex items-center gap-2">
                         <img src="rogo.jpg" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
-                        <h1 className="font-bold text-sm">Hikariブランドジェネレーター</h1>
+                        <h1 className="font-bold text-sm">Hikari Brand Note</h1>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={() => setIsHelpOpen(true)} className="p-2 text-hikari-text dark:text-gray-200"><HelpCircle size={20}/></button>
@@ -571,8 +677,8 @@
                                 <img src="rogo.jpg" alt="光製薬ロゴ" className="h-full w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
                             </div>
                             <div className="border-l-2 border-slate-200 dark:border-gray-600 pl-4">
-                                <h1 className="text-2xl font-bold">Hikariブランドジェネレーター</h1>
-                                <p className="opacity-80 text-sm">ブランディング強化・運用効率化ツール</p>
+                                <h1 className="text-2xl font-bold">Hikari Brand Note</h1>
+                                <p className="opacity-80 text-sm">日常から、信頼を積み重ねるSNS発信</p>
                             </div>
                         </div>
                         <div className="flex gap-3">
@@ -884,37 +990,42 @@
                             </div>
                             <div className="p-6 space-y-4">
                                 <div className="text-sm opacity-80 mb-4">
-                                    ブランドイメージを統一し、誰でも簡単にSNS投稿を作成できるツールです。
+                                    【目的】<br/>
+                                    Hikari Brand Note は、投稿前に「この内容は光製薬の信頼を育てているか」を一度立ち止まって確認するためのアプリです。
                                 </div>
                                 <div className="space-y-3">
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</div>
                                         <div>
-                                            <p className="font-bold text-sm">投稿時期を選ぶ</p>
-                                            <p className="text-xs opacity-70">季節に合わせた挨拶文が自動で挿入されます。</p>
+                                            <p className="font-bold text-sm">発信したい内容を入力します</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</div>
                                         <div>
-                                            <p className="font-bold text-sm">ターゲットを選ぶ</p>
-                                            <p className="text-xs opacity-70">「患者様」「採用」など、相手に響くトーンに自動調整。</p>
+                                            <p className="font-bold text-sm">投稿の目的や伝えたい想いを整理します</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">3</div>
                                         <div>
-                                            <p className="font-bold text-sm">内容を入力＆更新</p>
-                                            <p className="text-xs opacity-70">行事名などを入れ「更新する」ボタンを押すと文章が完成！</p>
+                                            <p className="font-bold text-sm">誠実さ・安心感・将来性の視点で文章を見直します</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">4</div>
                                         <div>
-                                            <p className="font-bold text-sm">タブを選んでコピー</p>
-                                            <p className="text-xs opacity-70">投稿したいSNSのタブを選び、コピーボタンを押すだけ。返信例もご活用ください。</p>
+                                            <p className="font-bold text-sm">そのままSNS投稿文として活用します</p>
                                         </div>
                                     </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-xs opacity-70">
+                                    <p className="font-bold mb-1">【投稿文の目的】</p>
+                                    <ul className="list-disc list-inside space-y-1">
+                                        <li>売り込むためではなく、信頼を積み重ねるため</li>
+                                        <li>派手さよりも、日常の誠実さ</li>
+                                        <li>一回の投稿ではなく、継続によるブランド形成</li>
+                                    </ul>
                                 </div>
                             </div>
                             <div className="p-4 bg-gray-50 dark:bg-gray-800 text-center">
