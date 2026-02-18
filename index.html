@@ -88,6 +88,7 @@
         const Link = (p) => <Icon {...p}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></Icon>;
         const Folder = (p) => <Icon {...p}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 2H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></Icon>;
         const ArrowLeft = (p) => <Icon {...p}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></Icon>;
+        const FileText = (p) => <Icon {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></Icon>;
 
         // --- アプリケーション本体 ---
         const HikariBrandNote = () => {
@@ -100,13 +101,11 @@
             const [imageSuggestion, setImageSuggestion] = useState('');
             const [copiedState, setCopiedState] = useState({ fb: false, insta: false, x: false });
             
-            // Tab State: 'insta', 'fb', 'x', 'reply'
+            // Tab State
             const [activeTab, setActiveTab] = useState('insta');
             
             // Image Selection State
             const [selectedImage, setSelectedImage] = useState(null);
-            
-            // Image Browser State
             const [imgBrowserPath, setImgBrowserPath] = useState([]); 
             
             // Settings State
@@ -115,7 +114,7 @@
             const [isDarkMode, setIsDarkMode] = useState(false);
             const [signature, setSignature] = useState("光製薬株式会社\n公式サイト：https://www.hikari-pharma.co.jp/");
             const [showGreeting, setShowGreeting] = useState(true);
-            const [ngWordsStr, setNgWordsStr] = useState("絶対,100%,No.1,必ず治る"); 
+            const [ngWordsStr, setNgWordsStr] = useState("絶対,100%,No.1,必ず治る,バズ,爆伸び,最強,圧倒的,売上直結,集客"); 
             const [ngWarnings, setNgWarnings] = useState([]);
             
             // Link Settings State
@@ -140,7 +139,48 @@
             // Placeholder Text State
             const [placeholderText, setPlaceholderText] = useState("");
 
-            // --- Server Image Assets Data Structure (Hierarchical) ---
+            // Templates Data
+            const templates = [
+                { label: "選択して本文に挿入...", value: "" },
+                { 
+                    label: "A) RTUライン立ち上げ準備", 
+                    value: "【RTUライン立ち上げ準備】\n新しいRTU（Ready-To-Use）製造ラインの立ち上げ準備が進んでいます。\n\nなぜ今、新ラインなのか。\nそれは、より迅速かつ安全に、必要な医薬品を医療現場へ届けるためです。\n最新の無菌充填技術により、汚染リスクを最小限に抑え、品質への信頼をさらに高めていきます。\n\n機械の音が響く前の静かな工場で、未来への責任を再確認しました。" 
+                },
+                { 
+                    label: "B) 設備投資の背景（安心投資）", 
+                    value: "【設備投資のお知らせ】\n工場の空調管理システムを最新版へアップデートしました。\n\nこれは単なる老朽化対策ではありません。\n医薬品製造に不可欠な「空気の質」を、より厳格に、より安定して管理するための「安心への投資」です。\n\n目に見えない空気の流れ一つひとつにも、患者様の安全が関わっています。\n妥協のない環境づくりが、私たちの誇りです。" 
+                },
+                { 
+                    label: "C) 品質確認・検査工程の見直し", 
+                    value: "【品質管理の強化】\n検査工程のプロセスを一部見直しました。\n\n最新の検査機器導入に加え、熟練スタッフによる二重チェック体制を強化。\nヒューマンエラーを極限まで減らし、「確かな品質」だけを送り出すための仕組みづくりです。\n\n「疑わしきは止める」という勇気が、患者様の安心につながると信じています。" 
+                },
+                { 
+                    label: "D) 安定供給体制（止めない工夫）", 
+                    value: "【安定供給への取り組み】\n災害時にも供給を止めないために。\n自家発電設備の点検と、備蓄燃料の確保を行いました。\n\n医薬品は、患者様の命をつなぐもの。\nどんな時でも、必要な薬を待つ人がいる限り、私たちは作り続けます。\n備えあれば憂いなし。日々の点検が、非常時の命綱です。" 
+                },
+                { 
+                    label: "E) 人材育成（技術継承）", 
+                    value: "【技術継承の現場から】\nベテラン技術者から若手へ、無菌操作の技術継承研修を行いました。\n\nマニュアルには書けない、指先の「感覚」や「所作」。\n品質へのこだわりは、人から人へ、手から手へと受け継がれていきます。\n\n真剣な眼差しで学ぶ若手の姿に、光製薬の未来を見ました。" 
+                },
+                { 
+                    label: "F) 透明性（ガイドライン・情報公開）", 
+                    value: "【信頼の土台づくり】\n品質管理に関するガイドラインを更新し、社内イントラで公開しました。\n\n「誰が担当しても、同じ高品質を守れるように」。\nプロセスの透明化は、組織としての誠実さの証です。\n\n隠すことなく、開かれた姿勢で、皆様からの信頼にお応えしていきます。" 
+                },
+                { 
+                    label: "G) Vision2030（未来宣言）", 
+                    value: "【Vision2030プロジェクト】\n2030年に向けた社内プロジェクトが始動しました。\n\n「医療の未来を支える光になる」。\nこのビジョンのもと、今日は部署を超えた熱いディスカッションが行われました。\n\n10年後の笑顔のために、私たちは今日、確かな一歩を踏み出します。" 
+                }
+            ];
+
+            // Closing Sentences
+            const closingSentences = [
+                "Vision2030へ向けて、今日も土台を整えています。",
+                "見えないところから、信頼を積み重ねています。",
+                "これからも、安心を届ける準備を続けます。",
+                "未来の当たり前を、いまつくっています。"
+            ];
+
+            // --- Server Image Assets Data Structure ---
             const imageDatabase = {
                 id: 'root',
                 name: 'root',
@@ -316,7 +356,9 @@
                 academic: "【推奨画像】\n学会会場の看板を背景に、参加メンバーが充実した表情で並んでいる集合写真。\n真剣にポスター発表を聞いている後ろ姿など「熱意」が伝わる構図。",
                 csr: "【推奨画像】\n地域清掃やイベント活動中の、社員と地域の方とのふれあいの瞬間。\n「手元」や「笑顔」にクローズアップし、人の温かさを強調した写真。",
                 recruit: "【推奨画像】\n先輩社員が後輩に優しく教えているシーンや、社員食堂でのリラックスしたオフショット。\n「この会社で働くイメージ」が湧くような、明るく親しみやすい雰囲気で。",
-                product: "【推奨画像】\n工場内の機械のメタリックな質感と、厳しくチェックする担当者の真剣な眼差し。\n「品質へのこだわり」が伝わる、少しコントラスト強めの洗練された写真。"
+                product: "【推奨画像】\n工場内の機械のメタリックな質感と、厳しくチェックする担当者の真剣な眼差し。\n「品質へのこだわり」が伝わる、少しコントラスト強めの洗練された写真。",
+                vision2030: "【推奨画像】\n未来を見据える社員の横顔や、新しい建設計画の模型、または「光」をモチーフにした抽象的で希望を感じさせるイメージ。",
+                rtu_line: "【推奨画像】\n新ラインのクリーンルーム越しに見える最新機器、または無菌衣を着た担当者が点検している真剣な姿。「清潔感」と「最新技術」を強調。"
             };
 
             const coreHashtags = ["#光製薬", "#HikariBrandNote", "#Vision2030", "#医療と人をつなぐ"];
@@ -326,7 +368,9 @@
                 academic: ["#学会情報", "#医療ニュース", "#研究開発"],
                 csr: ["#サステナビリティ", "#地域貢献", "#健康経営"],
                 recruit: ["#採用", "#就活", "#働く人"],
-                product: ["#品質管理", "#安定供給", "#ものづくり"]
+                product: ["#品質管理", "#安定供給", "#ものづくり"],
+                vision2030: ["#未来への挑戦", "#イノベーション", "#長期ビジョン"],
+                rtu_line: ["#設備投資", "#新技術", "#安全対策", "#RTU"]
             };
 
             // Category Placeholders
@@ -335,7 +379,9 @@
                 academic: "例：第20回 日本医学会総会に参加し、新薬の研究成果を発表しました。\n例：〇〇学会にて、当社の研究員が優秀賞を受賞しました。",
                 csr: "例：地域の清掃活動に参加し、近隣住民の方々と交流しました。\n例：CO2削減に向けた新しい取り組みを開始しました。",
                 recruit: "例：202X年度の新入社員を迎え、入社式を執り行いました。\n例：先輩社員インタビュー動画を公開しました。",
-                product: "例：主力製品「〇〇」のパッケージをリニューアルし、視認性を向上させました。\n例：新工場での製造ラインが稼働を開始し、安定供給体制を強化しました。"
+                product: "例：主力製品「〇〇」のパッケージをリニューアルし、視認性を向上させました。\n例：新工場での製造ラインが稼働を開始し、安定供給体制を強化しました。",
+                vision2030: "2030年に向けた方針や改善の方向性を、やさしく言葉にします。\n例：全社プロジェクトのキックオフ、未来に向けた宣言など。",
+                rtu_line: "安定供給と品質向上につながる取り組みを、誠実に伝えます。\n例：新ラインの搬入、無菌テストの実施など。"
             };
 
             // Update placeholder when category changes
@@ -383,6 +429,16 @@
                 });
             };
 
+            // Template Selection Handler
+            const handleTemplateSelect = (e) => {
+                const val = e.target.value;
+                if (!val) return;
+                if (eventDetail && !window.confirm("入力済みの内容が上書きされますがよろしいですか？")) {
+                    return;
+                }
+                setEventDetail(val);
+            };
+
             useEffect(() => {
                 if (!eventDetail) {
                     setNgWarnings([]);
@@ -412,24 +468,30 @@
                 const monthStr = `${selectedMonth}月`;
                 const intro = showGreeting ? getSeasonalIntro(monthStr) : "";
                 
-                // Branding Block (Choose long version for FB/Insta to be more impactful)
+                // Branding Block
                 const brandingBlock = brandingMessages[stakeholder].long;
                 const shortBranding = brandingMessages[stakeholder].short;
 
-                const topicHeader = category === 'academic' ? '学会・研究ニュース' : '今月のトピックス';
+                // Random Closing Sentence
+                const closing = closingSentences[Math.floor(Math.random() * closingSentences.length)];
+
+                const topicHeader = category === 'academic' ? '学会・研究ニュース' : 
+                                    category === 'vision2030' ? 'Vision2030' :
+                                    category === 'rtu_line' ? '新ライン情報' : '今月のトピックス';
+                                    
                 const mainBody = eventDetail 
                 ? `\n━━━━━━━━━━━━━━\n【${topicHeader}】\n${eventDetail}\n━━━━━━━━━━━━━━\n` 
                 : '';
 
                 // FB Text
-                const fbText = `${intro ? intro + "\n\n" : ""}${mainBody}\n${brandingBlock}\n\n私たち光製薬は、これからも医療の未来を照らし続けます。\n\n----------------------------\n${signature}\n----------------------------\n\n${allHashtags}`;
+                const fbText = `${intro ? intro + "\n\n" : ""}${mainBody}\n${closing}\n\n${brandingBlock}\n\n私たち光製薬は、これからも医療の未来を照らし続けます。\n\n----------------------------\n${signature}\n----------------------------\n\n${allHashtags}`;
 
-                // Insta Text (Modified based on request and dynamic link)
+                // Insta Text
                 const instaFooter = `\n私たちの日々の取り組みや、想いを発信しています。\nぜひフォローして、光製薬の「今」に触れてください。\n\n🔗 ${customLinkText}`;
-                const instaText = `${intro ? intro + "\n\n" : ""}${eventDetail ? `${eventDetail}\n\n` : ''}..\n\n${brandingBlock}\n${instaFooter}\n\n${allHashtags}`;
+                const instaText = `${intro ? intro + "\n\n" : ""}${eventDetail ? `${eventDetail}\n\n${closing}\n\n` : ''}..\n\n${brandingBlock}\n${instaFooter}\n\n${allHashtags}`;
 
                 // X Text
-                const xText = `【${monthStr}のお知らせ】\n\n${shortBranding}\n\n${eventDetail}\n\n${showGreeting ? "季節の変わり目、皆様もご自愛ください。\n" : ""}#光製薬 #Vision2030`; 
+                const xText = `【${monthStr}のお知らせ】\n\n${shortBranding}\n\n${eventDetail}\n\n${closing}\n\n${showGreeting ? "季節の変わり目、皆様もご自愛ください。\n" : ""}#光製薬 #Vision2030`; 
 
                 setGeneratedText({ fb: fbText, insta: instaText, x: xText });
                 setImageSuggestion(imageSuggestionData[category] || "内容に合わせた清潔感のある写真");
@@ -660,7 +722,8 @@
                 
                 <div className="sticky top-0 z-10 bg-white dark:bg-hikari-darkCard border-b border-hikari-accent/20 shadow-sm px-4 py-3 flex items-center justify-between md:hidden">
                     <div className="flex items-center gap-2">
-                        <img src="rogo.jpg" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                        {/* Logo with placeholder fallback */}
+                        <img src="https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
                         <h1 className="font-bold text-sm">Hikari Brand Note</h1>
                     </div>
                     <div className="flex gap-2">
@@ -674,11 +737,13 @@
                     <header className="hidden md:flex mb-8 border-b-4 border-hikari-accent pb-4 bg-white dark:bg-hikari-darkCard p-6 rounded-t-xl shadow-sm items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="h-16 w-auto flex items-center">
-                                <img src="rogo.jpg" alt="光製薬ロゴ" className="h-full w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                                {/* Logo with placeholder fallback */}
+                                <img src="https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma" alt="光製薬ロゴ" className="h-full w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
                             </div>
                             <div className="border-l-2 border-slate-200 dark:border-gray-600 pl-4">
                                 <h1 className="text-2xl font-bold">Hikari Brand Note</h1>
-                                <p className="opacity-80 text-sm">日常から、信頼を積み重ねるSNS発信</p>
+                                <p className="font-bold text-sm text-hikari-accent mt-1">日常から、信頼を積み重ねるSNS発信</p>
+                                <p className="opacity-70 text-xs mt-0.5">Vision2030の方向性と、現場の取り組みを“つなぐ言葉”に整えます</p>
                             </div>
                         </div>
                         <div className="flex gap-3">
@@ -794,43 +859,69 @@
                                 </button>
                             </div>
                             
-                            <div className="mb-4">
-                                <label className="block text-sm font-bold mb-2">カテゴリー</label>
-                                <div className="relative">
-                                <select 
-                                    value={category} 
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full appearance-none p-3 bg-hikari-base dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-hikari-accent outline-none"
-                                >
-                                    <option value="company">会社行事・ニュース</option>
-                                    <option value="academic">学会・研究ニュース</option>
-                                    <option value="csr">サステナビリティ・地域貢献</option>
-                                    <option value="recruit">採用・社員紹介</option>
-                                    <option value="product">製品・工場（CDMO）</option>
-                                </select>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
-                                    <ChevronDown size={18} />
-                                </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold mb-2">
-                                詳細内容 
-                                <span className="ml-2 text-xs font-normal opacity-60">※具体的な行事名や出来事を入力</span>
-                                </label>
-                                <textarea
-                                    value={eventDetail}
-                                    onChange={(e) => setEventDetail(e.target.value)}
-                                    placeholder={placeholderText}
-                                    className="w-full p-3 border bg-white dark:bg-gray-800 border-slate-300 dark:border-gray-600 rounded-lg h-32 text-sm focus:ring-2 focus:ring-hikari-accent outline-none resize-none"
-                                />
-                                {ngWarnings.length > 0 && (
-                                    <div className="mt-2 text-red-500 text-xs flex items-center gap-1 font-bold animate-pulse">
-                                        <AlertTriangle size={14} />
-                                        <span>NGワードが含まれています: {ngWarnings.join(", ")}</span>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold mb-2">投稿テーマ（カテゴリー）</label>
+                                    <div className="relative">
+                                    <select 
+                                        value={category} 
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="w-full appearance-none p-3 bg-hikari-base dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-hikari-accent outline-none"
+                                    >
+                                        <option value="company">会社行事・ニュース</option>
+                                        <option value="academic">学会・研究ニュース</option>
+                                        <option value="csr">サステナビリティ・地域貢献</option>
+                                        <option value="recruit">採用・社員紹介</option>
+                                        <option value="product">製品・工場（CDMO）</option>
+                                        <option value="vision2030">Vision2030（未来への取り組み）</option>
+                                        <option value="rtu_line">RTUライン（立ち上げ・設備投資）</option>
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
+                                        <ChevronDown size={18} />
                                     </div>
-                                )}
+                                    </div>
+                                </div>
+
+                                {/* テンプレート選択機能（追加） */}
+                                <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border border-orange-100 dark:border-orange-800/30">
+                                    <label className="block text-xs font-bold mb-2 text-orange-800 dark:text-orange-200 flex items-center gap-1">
+                                        <FileText size={14} /> テンプレートから下書きを選ぶ
+                                    </label>
+                                    <div className="relative">
+                                        <select 
+                                            onChange={handleTemplateSelect}
+                                            className="w-full appearance-none p-2 pl-3 pr-8 bg-white dark:bg-gray-800 border border-orange-200 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer"
+                                            defaultValue=""
+                                        >
+                                            {templates.map((tpl, idx) => (
+                                                <option key={idx} value={tpl.value}>{tpl.label}</option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60 text-orange-800 dark:text-orange-200">
+                                            <ChevronDown size={16} />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-orange-600 dark:text-orange-300 mt-1">※選択すると入力欄の内容が上書きされます</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold mb-2">
+                                    詳細内容 
+                                    <span className="ml-2 text-xs font-normal opacity-60">※具体的な行事名や出来事を入力</span>
+                                    </label>
+                                    <textarea
+                                        value={eventDetail}
+                                        onChange={(e) => setEventDetail(e.target.value)}
+                                        placeholder={placeholderText}
+                                        className="w-full p-3 border bg-white dark:bg-gray-800 border-slate-300 dark:border-gray-600 rounded-lg h-40 text-sm focus:ring-2 focus:ring-hikari-accent outline-none resize-none"
+                                    />
+                                    {ngWarnings.length > 0 && (
+                                        <div className="mt-2 text-red-500 text-xs flex items-center gap-1 font-bold animate-pulse">
+                                            <AlertTriangle size={14} />
+                                            <span>NGワードが含まれています: {ngWarnings.join(", ")}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gray-700">
@@ -841,6 +932,10 @@
                                 <RefreshCw size={18} />
                                 内容を更新する
                                 </button>
+                                <div className="text-center mt-2 flex flex-col gap-1 text-[10px] text-gray-500 dark:text-gray-400">
+                                    <span>売り込む投稿ではなく、信頼を育てる投稿を。</span>
+                                    <span>一回の投稿より、積み重ねがブランドになります。</span>
+                                </div>
                             </div>
                         </section>
 
@@ -880,7 +975,6 @@
                              >
                                 <Twitter size={16} /> X (Twitter)
                              </button>
-                             {/* Reply Tab Added */}
                              <button 
                                 onClick={() => setActiveTab('reply')}
                                 className={`flex-1 py-3 text-xs md:text-sm font-bold flex items-center justify-center gap-1 md:gap-2 transition-colors
@@ -997,19 +1091,19 @@
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</div>
                                         <div>
-                                            <p className="font-bold text-sm">発信したい内容を入力します</p>
+                                            <p className="font-bold text-sm">発信したい内容を入力・選択します</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</div>
                                         <div>
-                                            <p className="font-bold text-sm">投稿の目的や伝えたい想いを整理します</p>
+                                            <p className="font-bold text-sm">テンプレートを活用し、トーンを統一します</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
                                         <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">3</div>
                                         <div>
-                                            <p className="font-bold text-sm">誠実さ・安心感・将来性の視点で文章を見直します</p>
+                                            <p className="font-bold text-sm">Vision2030につながる「未来の言葉」を添えます</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-3">
@@ -1170,7 +1264,7 @@
                                     </div>
                                 </div>
 
-                                {/* Link Settings (Added) */}
+                                {/* Link Settings */}
                                 <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                                     <h4 className="font-bold text-sm flex items-center gap-2 text-hikari-accent">
                                         <Link size={16} /> リンク設定
