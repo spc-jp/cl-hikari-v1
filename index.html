@@ -29,12 +29,13 @@
                         }
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'spin-slow': 'spin 3s linear infinite',
                     },
                     keyframes: {
                         fadeIn: {
-                            '0%': { opacity: '0', transform: 'scale(0.95)' },
-                            '100%': { opacity: '1', transform: 'scale(1)' },
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     }
                 }
@@ -48,13 +49,24 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        
+        /* ローディングアニメーション用 */
+        .loader {
+            border-top-color: transparent;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useRef } = React;
 
         // --- アイコンコンポーネント (Lucide Icons) ---
         const Icon = ({ children, className = "", size = 24 }) => (
@@ -101,6 +113,12 @@
             const [imageSuggestion, setImageSuggestion] = useState('');
             const [copiedState, setCopiedState] = useState({ fb: false, insta: false, x: false });
             
+            // Loading State for Generation
+            const [isGenerating, setIsGenerating] = useState(false);
+
+            // Template Selection State
+            const [selectedTemplate, setSelectedTemplate] = useState("");
+
             // Tab State
             const [activeTab, setActiveTab] = useState('insta');
             
@@ -434,11 +452,12 @@
             // Template Selection Handler
             const handleTemplateSelect = (e) => {
                 const val = e.target.value;
-                if (!val) return;
-                if (eventDetail && !window.confirm("入力済みの内容が上書きされますがよろしいですか？")) {
+                if (!val) {
+                    setSelectedTemplate("");
                     return;
                 }
                 setEventDetail(val);
+                setSelectedTemplate("");
             };
 
             useEffect(() => {
@@ -497,6 +516,15 @@
 
                 setGeneratedText({ fb: fbText, insta: instaText, x: xText });
                 setImageSuggestion(imageSuggestionData[category] || "内容に合わせた清潔感のある写真");
+            };
+
+            const handleGenerateClick = () => {
+                setIsGenerating(true);
+                // Simulate network/AI delay for better UX
+                setTimeout(() => {
+                    generateContent();
+                    setIsGenerating(false);
+                }, 800);
             };
 
             const getSeasonalIntro = (month) => {
@@ -573,14 +601,15 @@
             };
 
             const handleReset = () => {
-                if(window.confirm("入力内容をリセットしますか？")) {
-                    setEventDetail("");
-                    setCategory("company");
-                    setSelectedMonth(new Date().getMonth() + 1);
-                    setStakeholder("general");
-                    setSelectedImage(null);
-                    setImgBrowserPath([]);
-                }
+                // Simplified reset without confirm for iframe compatibility
+                setEventDetail("");
+                setCategory("company");
+                setSelectedMonth(new Date().getMonth() + 1);
+                setStakeholder("general");
+                setSelectedImage(null);
+                setImgBrowserPath([]);
+                // Regenerate default content on reset
+                setTimeout(() => generateContent(), 0);
             };
 
             const handleHolidayChange = (location, type, key, value) => {
@@ -596,9 +625,21 @@
                 }));
             };
 
+            // Initial Generation on Mount
             useEffect(() => {
                 generateContent();
-            }, [selectedMonth, category, eventDetail, stakeholder, signature, showGreeting, customLinkText]);
+            }, []); // Empty dependency array means run once on mount
+
+            // Auto-regenerate only when key dependencies change (not on every typing keystroke if we want to avoid flicker, but here we update state that drives preview)
+            // Ideally we wait for button click for "Generation" feel, but preview needs to be responsive.
+            // Let's keep manual generation for the "AI" feel, but auto-update previews for simple state changes.
+            // actually, let's stick to the button for the "AI Writing" feel, but update for simple selects.
+            useEffect(() => {
+                if(!isGenerating && eventDetail === '') {
+                     generateContent();
+                }
+            }, [selectedMonth, category, stakeholder, signature, showGreeting, customLinkText]);
+
 
             const renderImageSelection = () => {
                 const currentFolder = getCurrentFolder();
@@ -690,8 +731,13 @@
                 
                 <div className="sticky top-0 z-10 bg-white dark:bg-hikari-darkCard border-b border-hikari-accent/20 shadow-sm px-4 py-3 flex items-center justify-between md:hidden">
                     <div className="flex items-center gap-2">
-                        {/* Logo changed to local file */}
-                        <img src="rogo.jpg" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                        {/* Logo changed to local file with fallback */}
+                        <img 
+                            src="rogo.jpg" 
+                            alt="光製薬ロゴ" 
+                            className="h-8 w-auto object-contain" 
+                            onError={(e) => e.target.src = 'https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma'} 
+                        />
                         <h1 className="font-bold text-sm">Hikari Brand Note</h1>
                     </div>
                     <div className="flex gap-2">
@@ -705,8 +751,13 @@
                     <header className="hidden md:flex mb-8 border-b-4 border-hikari-accent pb-4 bg-white dark:bg-hikari-darkCard p-6 rounded-t-xl shadow-sm items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="h-16 w-auto flex items-center">
-                                {/* Logo changed to local file */}
-                                <img src="rogo.jpg" alt="光製薬ロゴ" className="h-full w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                                {/* Logo changed to local file with fallback */}
+                                <img 
+                                    src="rogo.jpg" 
+                                    alt="光製薬ロゴ" 
+                                    className="h-full w-auto object-contain" 
+                                    onError={(e) => e.target.src = 'https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma'} 
+                                />
                             </div>
                             <div className="border-l-2 border-slate-200 dark:border-gray-600 pl-4">
                                 <h1 className="text-2xl font-bold">Hikari Brand Note</h1>
@@ -857,9 +908,9 @@
                                     </label>
                                     <div className="relative">
                                         <select 
+                                            value={selectedTemplate}
                                             onChange={handleTemplateSelect}
                                             className="w-full appearance-none p-2 pl-3 pr-8 bg-white dark:bg-gray-800 border border-orange-200 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer"
-                                            defaultValue=""
                                         >
                                             {templates.map((tpl, idx) => (
                                                 <option key={idx} value={tpl.value}>{tpl.label}</option>
@@ -894,11 +945,22 @@
 
                             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-gray-700">
                                 <button 
-                                onClick={generateContent}
-                                className="w-full py-3 bg-hikari-accent text-white rounded-lg flex items-center justify-center gap-2 hover:bg-[#a01825] transition-colors font-bold shadow-md active:transform active:scale-95"
+                                onClick={handleGenerateClick}
+                                disabled={isGenerating}
+                                className={`w-full py-3 text-white rounded-lg flex items-center justify-center gap-2 font-bold shadow-md transition-all active:scale-95
+                                    ${isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'bg-hikari-accent hover:bg-[#a01825]'}`}
                                 >
-                                <RefreshCw size={18} />
-                                内容を更新する
+                                {isGenerating ? (
+                                    <>
+                                        <div className="loader w-4 h-4 border-2 border-white rounded-full"></div>
+                                        <span>AI生成中...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <RefreshCw size={18} />
+                                        <span>内容を更新する</span>
+                                    </>
+                                )}
                                 </button>
                                 <div className="text-center mt-2 flex flex-col gap-1 text-[10px] text-gray-500 dark:text-gray-400">
                                     <span>売り込む投稿ではなく、信頼を育てる投稿を。</span>
@@ -967,21 +1029,24 @@
                                     <button 
                                     onClick={() => handleCopy(generatedText[activeTab])}
                                     className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-colors font-bold text-white shadow-sm
-                                        ${activeTab === 'insta' ? 'bg-pink-500 hover:bg-pink-600' : 
-                                        activeTab === 'fb' ? 'bg-blue-600 hover:bg-blue-700' : 
-                                        'bg-gray-800 hover:bg-black'}`}
+                                        ${copiedState[activeTab] 
+                                            ? 'bg-green-500 hover:bg-green-600 scale-105' 
+                                            : activeTab === 'insta' ? 'bg-pink-500 hover:bg-pink-600' 
+                                            : activeTab === 'fb' ? 'bg-blue-600 hover:bg-blue-700' 
+                                            : 'bg-gray-800 hover:bg-black'}`}
                                     >
                                     {copiedState[activeTab] ? <Check size={14} /> : <Copy size={14} />}
-                                    {copiedState[activeTab] ? '完了' : 'コピー'}
+                                    {copiedState[activeTab] ? '完了！' : 'コピー'}
                                     </button>
                                 </div>
                             )}
 
+                            {/* ... Content Areas ... */}
                             {activeTab === 'insta' && (
-                                <div className="p-4 animate-fade-in">
+                                <div className={`p-4 ${isGenerating ? 'opacity-50' : 'animate-fade-in'}`}>
                                     <div className="flex flex-col gap-4 mb-4">
                                         <div className="w-full bg-white dark:bg-gray-800 p-4 rounded border border-slate-100 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed">
-                                            {generatedText.insta}
+                                            {generatedText.insta || <span className="text-gray-400">内容を生成してください...</span>}
                                         </div>
                                         {selectedImage && (
                                             <div className="w-full max-w-sm mx-auto aspect-square bg-slate-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-slate-200 dark:border-gray-600">
@@ -993,9 +1058,9 @@
                             )}
 
                             {activeTab === 'fb' && (
-                                <div className="p-4 animate-fade-in">
+                                <div className={`p-4 ${isGenerating ? 'opacity-50' : 'animate-fade-in'}`}>
                                     <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed mb-4">
-                                        {generatedText.fb}
+                                        {generatedText.fb || <span className="text-gray-400">内容を生成してください...</span>}
                                     </div>
                                     {selectedImage && (
                                         <div className="mb-4 rounded-lg overflow-hidden border border-slate-200 dark:border-gray-600">
@@ -1006,9 +1071,9 @@
                             )}
 
                             {activeTab === 'x' && (
-                                <div className="p-4 animate-fade-in">
+                                <div className={`p-4 ${isGenerating ? 'opacity-50' : 'animate-fade-in'}`}>
                                     <div className="bg-hikari-base dark:bg-gray-800 p-4 rounded border border-slate-200 dark:border-gray-600 whitespace-pre-wrap text-sm leading-relaxed mb-2">
-                                        {generatedText.x}
+                                        {generatedText.x || <span className="text-gray-400">内容を生成してください...</span>}
                                     </div>
                                     <div className="mt-2 mb-4 text-right text-xs opacity-60">
                                         {generatedText.x.length} 文字
@@ -1042,56 +1107,69 @@
 
                 {isHelpOpen && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                        <div className="bg-white dark:bg-hikari-darkCard w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-fade-in">
-                            <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                        <div className="bg-white dark:bg-hikari-darkCard w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
+                            <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center shrink-0">
                                 <h3 className="font-bold text-lg flex items-center gap-2">
                                     <HelpCircle className="text-hikari-accent" />
                                     使い方ガイド
                                 </h3>
                                 <button onClick={() => setIsHelpOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={24}/></button>
                             </div>
-                            <div className="p-6 space-y-4">
-                                <div className="text-sm opacity-80 mb-4">
-                                    【目的】<br/>
-                                    Hikari Brand Note は、投稿前に「この内容は光製薬の信頼を育てているか」を一度立ち止まって確認するためのアプリです。
+                            <div className="p-6 space-y-6 overflow-y-auto">
+                                <div className="text-sm opacity-80 bg-blue-50 dark:bg-gray-700 p-3 rounded-lg border border-blue-100 dark:border-gray-600">
+                                    <span className="font-bold text-blue-800 dark:text-blue-200">【コンセプト】</span><br/>
+                                    このアプリは、日々の投稿を通じて「光製薬の信頼」を積み重ねるためのサポートツールです。
                                 </div>
-                                <div className="space-y-3">
-                                    <div className="flex items-start gap-3">
-                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</div>
+                                
+                                <div className="space-y-5">
+                                    <div className="flex gap-4 relative">
+                                        {/* 線をつなぐ装飾 */}
+                                        <div className="absolute left-[15px] top-8 bottom-[-20px] w-0.5 bg-gray-200 dark:bg-gray-600 last:hidden"></div>
+                                        
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">1</div>
                                         <div>
-                                            <p className="font-bold text-sm">発信したい内容を入力・選択します</p>
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">「時期」と「ターゲット」を決める</h4>
+                                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                                                カレンダーで投稿月を選び、誰に向けたメッセージか（ターゲット）を選択します。これだけで、季節の挨拶や文章のトーンが自動設定されます。
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</div>
+
+                                    <div className="flex gap-4 relative">
+                                        <div className="absolute left-[15px] top-8 bottom-[-20px] w-0.5 bg-gray-200 dark:bg-gray-600"></div>
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">2</div>
                                         <div>
-                                            <p className="font-bold text-sm">テンプレートを活用し、トーンを統一します</p>
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">内容を入力する（テンプレ活用）</h4>
+                                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                                                「投稿テーマ」を選びます。テンプレート機能を使えば、Vision2030やRTUラインなどの話題も、選ぶだけでプロ品質の下書きが入力されます。
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">3</div>
+
+                                    <div className="flex gap-4 relative">
+                                        <div className="absolute left-[15px] top-8 bottom-[-20px] w-0.5 bg-gray-200 dark:bg-gray-600"></div>
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">3</div>
                                         <div>
-                                            <p className="font-bold text-sm">Vision2030につながる「未来の言葉」を添えます</p>
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">「更新ボタン」を押して生成</h4>
+                                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                                                <span className="font-bold">「内容を更新する」</span>ボタンを押すと、AIロジックが働き、季節の挨拶・本文・締めの言葉・ハッシュタグを組み合わせた投稿文が完成します。
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-start gap-3">
-                                        <div className="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">4</div>
+
+                                    <div className="flex gap-4 relative">
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">4</div>
                                         <div>
-                                            <p className="font-bold text-sm">そのままSNS投稿文として活用します</p>
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">コピーして投稿へ</h4>
+                                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                                                プレビューで確認し、各SNSタブ（Instagram/FB/X）からコピーします。画像のアドバイスも参考にしてください。
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 text-xs opacity-70">
-                                    <p className="font-bold mb-1">【投稿文の目的】</p>
-                                    <ul className="list-disc list-inside space-y-1">
-                                        <li>売り込むためではなく、信頼を積み重ねるため</li>
-                                        <li>派手さよりも、日常の誠実さ</li>
-                                        <li>一回の投稿ではなく、継続によるブランド形成</li>
-                                    </ul>
                                 </div>
                             </div>
-                            <div className="p-4 bg-gray-50 dark:bg-gray-800 text-center">
-                                <button onClick={() => setIsHelpOpen(false)} className="w-full py-2 bg-hikari-accent text-white rounded-lg font-bold">理解しました！</button>
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800 text-center shrink-0 border-t border-gray-100 dark:border-gray-700">
+                                <button onClick={() => setIsHelpOpen(false)} className="w-full py-2 bg-gray-800 dark:bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-bold transition-colors">作成をはじめる</button>
                             </div>
                         </div>
                     </div>
