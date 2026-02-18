@@ -683,47 +683,13 @@
                 );
             };
 
-            const renderReplyExamples = () => {
-                const patterns = replyPatterns[stakeholder] || replyPatterns['general'];
-                return (
-                    <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 animate-fade-in border-b border-slate-200 dark:border-gray-700">
-                        <h3 className="font-bold text-sm mb-3 flex items-center gap-2 text-hikari-text dark:text-gray-300">
-                            <MessageCircle size={16} className="text-hikari-accent" />
-                            コメントへの返信例 
-                            <span className="text-[10px] font-normal opacity-70">（クリックでコピー）</span>
-                        </h3>
-                        <div className="space-y-2">
-                            {patterns.map((pattern, idx) => (
-                                <button 
-                                    key={idx}
-                                    onClick={() => handleCopy(pattern.text)}
-                                    className="w-full text-left p-3 bg-white dark:bg-gray-700 rounded border border-slate-200 dark:border-gray-600 hover:border-hikari-accent dark:hover:border-hikari-accent group transition-all"
-                                >
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-[10px] font-bold bg-slate-100 dark:bg-gray-600 text-slate-600 dark:text-gray-300 px-2 py-0.5 rounded">
-                                            {pattern.label}
-                                        </span>
-                                        <span className="text-[10px] text-hikari-accent opacity-0 group-hover:opacity-100 transition-opacity">
-                                            コピーする
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-gray-700 dark:text-gray-200 leading-relaxed">
-                                        {pattern.text}
-                                    </p>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                );
-            };
-
             return (
                 <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${isDarkMode ? 'text-hikari-darkText' : 'text-hikari-text'}`}>
                 
                 <div className="sticky top-0 z-10 bg-white dark:bg-hikari-darkCard border-b border-hikari-accent/20 shadow-sm px-4 py-3 flex items-center justify-between md:hidden">
                     <div className="flex items-center gap-2">
-                        {/* Logo with placeholder fallback */}
-                        <img src="https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                        {/* Logo changed to local file */}
+                        <img src="rogo.jpg" alt="光製薬ロゴ" className="h-8 w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
                         <h1 className="font-bold text-sm">Hikari Brand Note</h1>
                     </div>
                     <div className="flex gap-2">
@@ -737,8 +703,8 @@
                     <header className="hidden md:flex mb-8 border-b-4 border-hikari-accent pb-4 bg-white dark:bg-hikari-darkCard p-6 rounded-t-xl shadow-sm items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="h-16 w-auto flex items-center">
-                                {/* Logo with placeholder fallback */}
-                                <img src="https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma" alt="光製薬ロゴ" className="h-full w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
+                                {/* Logo changed to local file */}
+                                <img src="rogo.jpg" alt="光製薬ロゴ" className="h-full w-auto object-contain" onError={(e) => e.target.style.display = 'none'} />
                             </div>
                             <div className="border-l-2 border-slate-200 dark:border-gray-600 pl-4">
                                 <h1 className="text-2xl font-bold">Hikari Brand Note</h1>
