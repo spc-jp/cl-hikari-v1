@@ -101,6 +101,7 @@
         const Folder = (p) => <Icon {...p}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 2H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></Icon>;
         const ArrowLeft = (p) => <Icon {...p}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></Icon>;
         const FileText = (p) => <Icon {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></Icon>;
+        const Eye = (p) => <Icon {...p}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></Icon>;
 
         // --- アプリケーション本体 ---
         const HikariBrandNote = () => {
@@ -161,32 +162,32 @@
             const templates = [
                 { label: "選択して本文に挿入...", value: "" },
                 { 
-                    label: "A) RTUライン立ち上げ準備", 
+                    label: "A) Vision2030（未来宣言）", 
+                    value: "【Vision2030：未来への羅針盤】\n2030年に向けた全社プロジェクトが、熱を帯びてきました。\n\n「医療の未来を支える、確かな光になる」。\nこのビジョンのもと、今日は部署の垣根を超えたディスカッションが行われました。\n\n10年後の誰かの笑顔のために。\n私たちは今日、確かな一歩を、ここから踏み出します。" 
+                },
+                { 
+                    label: "B) RTUライン立ち上げ準備", 
                     value: "【新ライン、始動へのカウントダウン】\nRTU（Ready-To-Use）ラインの稼働に向け、最終調整が大詰めを迎えています。\n\n「もっと速く、もっと安全に」。\nこのラインが動き出せば、緊急時にも必要な医薬品を遅滞なく届ける力が飛躍的に向上します。\n最新の無菌充填技術は、汚染リスクを極限までゼロに近づけるための私たちの挑戦です。\n\n無菌室のガラス越しに見る機械の輝きは、そのまま患者様の「希望の光」になると信じて。\n妥協なき準備が、私たちの誠意です。" 
                 },
                 { 
-                    label: "B) 設備投資の背景（安心投資）", 
+                    label: "C) 設備投資の背景（安心投資）", 
                     value: "【見えない空気への投資】\nこのたび、工場の空調管理システムを最新鋭のものへ刷新しました。\n\nこれは単なる設備の更新ではありません。\n医薬品製造に不可欠な「空気の質」を、24時間365日、完璧にコントロールするための「安心への投資」です。\n\n目に見えない空気の流れ一つひとつにも、患者様の安全が関わっています。\n「何も起きない」という当たり前を守り抜くために、私たちは設備にも、人の目にも、最善を尽くします。" 
                 },
                 { 
-                    label: "C) 品質確認・検査工程の見直し", 
+                    label: "D) 品質確認・検査工程の見直し", 
                     value: "【品質の砦を高く、強く】\n検査工程のプロセスを見直し、新たなダブルチェック体制を導入しました。\n\n最新の自動検査機と、熟練検査員の研ぎ澄まされた「眼」。\nテクノロジーと人の技を融合させることで、ヒューマンエラーを極限まで減らします。\n\n「疑わしきは、止める」。\nその勇気と厳しさこそが、医療現場からの信頼を守る唯一の道だと、私たちは知っています。" 
                 },
                 { 
-                    label: "D) 安定供給体制（止めない工夫）", 
+                    label: "E) 安定供給体制（止めない工夫）", 
                     value: "【「届かない」をなくすために】\nいつ、どんな時でも、薬を待つ人がいる。\nその事実に報いるため、自家発電設備の点検とBCP（事業継続計画）の見直しを行いました。\n\n災害時でも供給のラインを止めない。\nそれは、医薬品メーカーとしての私たちの矜持であり、社会との約束です。\n備えあれば憂いなし。平時の地道な点検が、非常時の命綱をつなぎます。" 
                 },
                 { 
-                    label: "E) 人材育成（技術継承）", 
+                    label: "F) 人材育成（技術継承）", 
                     value: "【受け継がれる「光」の遺伝子】\nベテラン技術者から若手社員へ、無菌操作の技術継承研修が行われました。\n\nマニュアルには書ききれない、指先の繊細な感覚や、品質への執念。\n言葉を超えた「想い」が、人から人へ、手から手へと受け継がれていきます。\n\n真剣な眼差しでメモを取る若手の姿に、光製薬の頼もしい未来を見ました。" 
                 },
                 { 
-                    label: "F) 透明性（ガイドライン・情報公開）", 
+                    label: "G) 透明性（ガイドライン・情報公開）", 
                     value: "【ガラス張りの信頼】\n品質管理に関するガイドラインを改定し、社内での共有を徹底しました。\n\n「誰が作っても、同じ高品質を」。\nプロセスの透明化は、組織としての誠実さの証です。\n隠すことなく、開かれた姿勢で。私たちはこれからも、皆様からの信頼に真っ直ぐお応えしていきます。" 
-                },
-                { 
-                    label: "G) Vision2030（未来宣言）", 
-                    value: "【Vision2030：未来への羅針盤】\n2030年に向けた全社プロジェクトが、熱を帯びてきました。\n\n「医療の未来を支える、確かな光になる」。\nこのビジョンのもと、今日は部署の垣根を超えたディスカッションが行われました。\n\n10年後の誰かの笑顔のために。\n私たちは今日、確かな一歩を、ここから踏み出します。" 
                 }
             ];
 
@@ -640,6 +641,43 @@
                 }
             }, [selectedMonth, category, stakeholder, signature, showGreeting, customLinkText]);
 
+            const renderReplyExamples = () => {
+                const patterns = replyPatterns[stakeholder] || [];
+                return (
+                    <div className="p-4 space-y-4">
+                        <p className="text-sm opacity-80 mb-2">
+                            現在のターゲット設定: <span className="font-bold">{
+                                stakeholder === 'general' ? '一般・ブランド全体' :
+                                stakeholder === 'patient' ? '患者様・ご家族' :
+                                stakeholder === 'medical' ? '医療関係者' :
+                                stakeholder === 'recruit' ? '採用候補者' :
+                                stakeholder === 'partner' ? 'パートナー企業' :
+                                stakeholder === 'csr' ? '地域・社会 (CSR)' : stakeholder
+                            }</span>
+                        </p>
+                        {patterns.length > 0 ? (
+                            patterns.map((pattern, idx) => (
+                                <div key={idx} className="bg-white dark:bg-gray-800 p-3 rounded border border-green-100 dark:border-green-800/30">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-bold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                                            {pattern.label}
+                                        </span>
+                                        <button 
+                                            onClick={() => handleCopy(pattern.text)}
+                                            className="text-xs text-gray-500 hover:text-green-600 flex items-center gap-1"
+                                        >
+                                            <Copy size={12} /> コピー
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300">{pattern.text}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-400">このターゲット向けの返信パターンはありません。</p>
+                        )}
+                    </div>
+                );
+            };
 
             const renderImageSelection = () => {
                 const currentFolder = getCurrentFolder();
@@ -746,7 +784,7 @@
                     </div>
                 </div>
 
-                <div className="max-w-4xl mx-auto p-4 md:p-8">
+                <div className="max-w-6xl mx-auto p-4 md:p-8">
                     
                     <header className="hidden md:flex mb-8 border-b-4 border-hikari-accent pb-4 bg-white dark:bg-hikari-darkCard p-6 rounded-t-xl shadow-sm items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -783,15 +821,17 @@
                         </div>
                     </header>
 
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                     
-                    {/* Controls Section */}
-                    <div className="space-y-4">
+                    {/* Left Column: Input Controls */}
+                    <div className="space-y-6">
                         
-                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
-                            <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent">
+                        {/* STEP 1 */}
+                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors relative overflow-hidden">
+                            <div className="absolute top-0 left-0 bg-hikari-accent text-white text-xs font-bold px-2 py-1 rounded-br-lg z-10">STEP 1</div>
+                            <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent mt-2">
                                 <Calendar size={20} />
-                                投稿時期
+                                投稿時期を決める
                             </h2>
                             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
                                 <div className="relative w-full md:w-1/3">
@@ -833,10 +873,12 @@
                             </div>
                         </section>
 
-                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
-                            <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent">
+                        {/* STEP 2 */}
+                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors relative overflow-hidden">
+                            <div className="absolute top-0 left-0 bg-hikari-accent text-white text-xs font-bold px-2 py-1 rounded-br-lg z-10">STEP 2</div>
+                            <h2 className="flex items-center gap-2 font-bold text-base mb-3 text-hikari-accent mt-2">
                                 <Users size={20} />
-                                ターゲット (ブランド戦略)
+                                ターゲットを選ぶ
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {[
@@ -863,11 +905,13 @@
                             </div>
                         </section>
 
-                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors">
-                            <div className="flex justify-between items-center mb-3">
+                        {/* STEP 3 */}
+                        <section className="bg-white dark:bg-hikari-darkCard p-5 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 transition-colors relative overflow-hidden">
+                            <div className="absolute top-0 left-0 bg-hikari-accent text-white text-xs font-bold px-2 py-1 rounded-br-lg z-10">STEP 3</div>
+                            <div className="flex justify-between items-center mb-3 mt-2">
                                 <h2 className="flex items-center gap-2 font-bold text-base text-hikari-accent">
                                     <PenTool size={20} />
-                                    投稿内容
+                                    投稿内容を作る
                                 </h2>
                                 <button 
                                     onClick={handleReset}
@@ -971,10 +1015,12 @@
 
                     </div>
 
-                    <div className="space-y-6">
+                    {/* Right Column: Preview & Output */}
+                    <div className="space-y-6 lg:sticky lg:top-8">
                         <div className="flex items-center gap-2 mb-2">
-                        <h2 className="font-bold text-xl">プレビュー</h2>
-                        <span className="text-xs bg-hikari-base dark:bg-gray-700 px-2 py-1 rounded-full border border-slate-200 dark:border-gray-600">コピーして使用</span>
+                            <span className="bg-hikari-accent text-white text-xs font-bold px-2 py-1 rounded">STEP 4</span>
+                            <h2 className="font-bold text-xl">確認・プレビュー</h2>
+                            <span className="text-xs bg-hikari-base dark:bg-gray-700 px-2 py-1 rounded-full border border-slate-200 dark:border-gray-600 ml-auto">コピーして使用</span>
                         </div>
                         
                         <div className="flex bg-white dark:bg-hikari-darkCard rounded-t-xl overflow-hidden border-b border-gray-200 dark:border-gray-700">
