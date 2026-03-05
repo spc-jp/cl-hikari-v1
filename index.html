@@ -284,7 +284,7 @@
                         type: 'folder',
                         icon: <ImageIcon />,
                         children: [
-                            { id: 'logo_color', name: 'ブランドロゴ (カラー)', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/C11E2D?text=Hikari+Logo' },
+                            { id: 'logo_color', name: 'ブランドロゴ (カラー)', type: 'image', url: 'https://placehold.co/600x400/EAEFF3/C11E2D?text=HIKARI+Logo' },
                             { id: 'sky', name: '青空イメージ', type: 'image', url: 'https://placehold.co/600x400/87CEEB/ffffff?text=Sky+Image' }
                         ]
                     }
@@ -627,6 +627,9 @@
                 setImgBrowserPath([]);
                 // Regenerate default content on reset
                 setTimeout(() => generateContent(), 0);
+                
+                // ★追加：画面の先頭に滑らかにスクロールして戻る
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
             const handleHolidayChange = (location, type, key, value) => {
@@ -647,10 +650,7 @@
                 generateContent();
             }, []); // Empty dependency array means run once on mount
 
-            // Auto-regenerate only when key dependencies change (not on every typing keystroke if we want to avoid flicker, but here we update state that drives preview)
-            // Ideally we wait for button click for "Generation" feel, but preview needs to be responsive.
-            // Let's keep manual generation for the "AI" feel, but auto-update previews for simple state changes.
-            // actually, let's stick to the button for the "AI Writing" feel, but update for simple selects.
+            // Auto-regenerate only when key dependencies change
             useEffect(() => {
                 if(!isGenerating && eventDetail === '') {
                      generateContent();
@@ -784,13 +784,17 @@
                 <div className={`min-h-screen font-sans pb-20 transition-colors duration-300 ${isDarkMode ? 'text-hikari-darkText' : 'text-hikari-text'}`}>
                 
                 <div className="sticky top-0 z-10 bg-white dark:bg-hikari-darkCard border-b border-hikari-accent/20 shadow-sm px-4 py-3 flex items-center justify-between md:hidden">
-                    <div className="flex items-center gap-2">
+                    <div 
+                        className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={handleReset}
+                        title="トップ画面に戻る"
+                    >
                         {/* Logo changed to local file with fallback */}
                         <img 
                             src="rogo.jpg" 
                             alt="光製薬ロゴ" 
                             className="h-8 w-auto object-contain" 
-                            onError={(e) => e.target.src = 'https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma'} 
+                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/200x80/ffffff/C11E2D?text=HIKARI+Pharma'; }} 
                         />
                         <h1 className="font-bold text-sm">HIKARI Brand Note</h1>
                     </div>
@@ -800,17 +804,21 @@
                     </div>
                 </div>
 
-                <div className="max-w-6xl mx-auto p-4 md:p-8">
+                <div className="max-w-6xl mx-auto p-4 md:px-8 md:pb-8 md:pt-4">
                     
-                    <header className="hidden md:flex mb-8 border-b-4 border-hikari-accent pb-4 bg-white dark:bg-hikari-darkCard p-6 rounded-t-xl shadow-sm items-center justify-between">
-                        <div className="flex items-center gap-4">
+                    <header className="hidden md:flex sticky top-4 z-30 mb-8 border-b-4 border-hikari-accent bg-white/90 dark:bg-hikari-darkCard/90 backdrop-blur-md p-4 md:p-6 rounded-xl shadow-md items-center justify-between transition-all">
+                        <div 
+                            className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={handleReset}
+                            title="トップ画面に戻る"
+                        >
                             <div className="h-16 w-auto flex items-center">
                                 {/* Logo changed to local file with fallback */}
                                 <img 
                                     src="rogo.jpg" 
                                     alt="光製薬ロゴ" 
                                     className="h-full w-auto object-contain" 
-                                    onError={(e) => e.target.src = 'https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma'} 
+                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/200x80/ffffff/C11E2D?text=HIKARI+Pharma'; }} 
                                 />
                             </div>
                             <div className="border-l-2 border-slate-200 dark:border-gray-600 pl-4">
@@ -967,7 +975,7 @@
                                 {/* 2. 想い・テンプレート選択 */}
                                 <div>
                                     <label className="block text-sm font-bold mb-2 text-gray-800 dark:text-gray-200">
-                                        伝えたい想いを選ぶ <span className="text-xs font-normal opacity-60 ml-1">（テンプレートから選ぶ）</span>
+                                        伝えたい想いを選ぶ <span className="text-xs font-normal opacity-60 ml-1">（想いから選ぶ）</span>
                                     </label>
                                     <div className="relative">
                                         <select 
@@ -989,7 +997,7 @@
                                 {/* 3. 詳細内容 */}
                                 <div>
                                     <label className="block text-sm font-bold mb-2 text-gray-800 dark:text-gray-200">
-                                        詳細内容 <span className="text-xs font-normal opacity-60 ml-1">※自動入力された文章を自由に編集・追記してください</span>
+                                        詳細内容 <span className="text-xs font-normal opacity-60 ml-1">※具体的な行事名や出来事を入力</span>
                                     </label>
                                     <textarea
                                         value={eventDetail}
@@ -1183,7 +1191,7 @@
                             <div className="p-6 space-y-6 overflow-y-auto">
                                 <div className="text-sm opacity-80 bg-blue-50 dark:bg-gray-700 p-3 rounded-lg border border-blue-100 dark:border-gray-600">
                                     <span className="font-bold text-blue-800 dark:text-blue-200">【コンセプト】</span><br/>
-                                    このアプリは、日々の投稿を通じて「光製薬の信頼」を積み重ねるためのサポートツールです。
+                                    このアプリは、日々の投稿を通じて「光製薬の信頼」を積み重ねるためのSNS作成サポートツールです。
                                 </div>
                                 
                                 <div className="space-y-5">
@@ -1191,43 +1199,43 @@
                                         {/* 線をつなぐ装飾 */}
                                         <div className="absolute left-[15px] top-8 bottom-[-20px] w-0.5 bg-gray-200 dark:bg-gray-600 last:hidden"></div>
                                         
-                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">1</div>
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm text-sm">1</div>
                                         <div>
                                             <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">「時期」と「ターゲット」を決める</h4>
                                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
-                                                カレンダーで投稿月を選び、誰に向けたメッセージか（ターゲット）を選択します。これだけで、季節の挨拶や文章のトーンが自動設定されます。
+                                                STEP1と2で、投稿月と誰に向けた発信かを選びます。これだけで最適な「季節の挨拶」と「ブランドメッセージ」が自動設定されます。
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex gap-4 relative">
                                         <div className="absolute left-[15px] top-8 bottom-[-20px] w-0.5 bg-gray-200 dark:bg-gray-600"></div>
-                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">2</div>
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm text-sm">2</div>
                                         <div>
-                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">内容を入力する（テンプレ活用）</h4>
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">「テーマ」と「想い」を選ぶ</h4>
                                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
-                                                「投稿テーマ」を選びます。テンプレート機能を使えば、Vision2030やRTUラインなどの話題も、選ぶだけでプロ品質の下書きが入力されます。
+                                                STEP3で発信のテーマを選ぶと、おすすめのハッシュタグと画像候補が変わります。さらに「伝えたい想い」を選ぶと、プロ品質の文章ベースが入力欄にセットされます。
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex gap-4 relative">
                                         <div className="absolute left-[15px] top-8 bottom-[-20px] w-0.5 bg-gray-200 dark:bg-gray-600"></div>
-                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">3</div>
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm text-sm">3</div>
                                         <div>
-                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">「更新ボタン」を押して生成</h4>
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">内容を整えて「更新」する</h4>
                                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
-                                                <span className="font-bold">「内容を更新する」</span>ボタンを押すと、AIロジックが働き、季節の挨拶・本文・締めの言葉・ハッシュタグを組み合わせた投稿文が完成します。
+                                                入力欄の文章に、具体的な行事名などを自由に追記して整えます。<span className="font-bold">「内容を更新する」</span>ボタンを押すと、すべての要素が組み合わさった投稿文が完成します。
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="flex gap-4 relative">
-                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm">4</div>
+                                        <div className="bg-hikari-accent text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 z-10 shadow-sm text-sm">4</div>
                                         <div>
-                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">コピーして投稿へ</h4>
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200">プレビューを確認してコピー</h4>
                                             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
-                                                プレビューで確認し、各SNSタブ（Instagram/FB/X）からコピーします。画像のアドバイスも参考にしてください。
+                                                右側のSTEP4で仕上がりを確認します。Instagram、Facebook、Xなどの各SNSに最適化された文章をコピーして、そのまま投稿にご活用ください。
                                             </p>
                                         </div>
                                     </div>
