@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hikari Brand Note</title>
+    <title>HIKARI Brand Note</title>
     <!-- デザイン用：Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React本体 -->
@@ -398,7 +398,7 @@
                 rtu_line: "【推奨画像】\n新ラインのクリーンルーム越しに見える最新機器、または無菌衣を着た担当者が点検している真剣な姿。「清潔感」と「最新技術」を強調。"
             };
 
-            const coreHashtags = ["#光製薬", "#HikariBrandNote", "#創業90周年", "#医療と人をつなぐ"];
+            const coreHashtags = ["#光製薬", "#HIKARIBrandNote", "#創業90周年", "#医療と人をつなぐ"];
             
             const variableHashtagsData = {
                 company: ["#企業文化", "#社内風景", "#製薬会社"],
@@ -792,7 +792,7 @@
                             className="h-8 w-auto object-contain" 
                             onError={(e) => e.target.src = 'https://placehold.co/200x80/ffffff/C11E2D?text=Hikari+Pharma'} 
                         />
-                        <h1 className="font-bold text-sm">Hikari Brand Note</h1>
+                        <h1 className="font-bold text-sm">HIKARI Brand Note</h1>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={() => setIsHelpOpen(true)} className="p-2 text-hikari-text dark:text-gray-200"><HelpCircle size={20}/></button>
@@ -814,7 +814,7 @@
                                 />
                             </div>
                             <div className="border-l-2 border-slate-200 dark:border-gray-600 pl-4">
-                                <h1 className="text-2xl font-bold">Hikari Brand Note</h1>
+                                <h1 className="text-2xl font-bold">HIKARI Brand Note</h1>
                                 <p className="font-bold text-sm text-hikari-accent mt-1">日常から、信頼を積み重ねるSNS発信</p>
                                 <p className="opacity-70 text-xs mt-0.5">Vision2030の方向性と、現場の取り組みを“つなぐ言葉”に整えます</p>
                             </div>
@@ -938,9 +938,12 @@
                                 </button>
                             </div>
                             
-                            <div className="space-y-4">
+                            <div className="space-y-5">
+                                {/* 1. テーマ選択 */}
                                 <div>
-                                    <label className="block text-sm font-bold mb-2">投稿テーマ（カテゴリー）</label>
+                                    <label className="block text-sm font-bold mb-2 text-gray-800 dark:text-gray-200">
+                                        投稿テーマを選ぶ <span className="text-xs font-normal opacity-60 ml-1">（カテゴリーから選ぶ）</span>
+                                    </label>
                                     <div className="relative">
                                     <select 
                                         value={category} 
@@ -961,32 +964,32 @@
                                     </div>
                                 </div>
 
-                                {/* テンプレート選択機能（追加） */}
-                                <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border border-orange-100 dark:border-orange-800/30">
-                                    <label className="block text-xs font-bold mb-2 text-orange-800 dark:text-orange-200 flex items-center gap-1">
-                                        <FileText size={14} /> 伝えたい想いのベースを選ぶ（テンプレート）
+                                {/* 2. 想い・テンプレート選択 */}
+                                <div>
+                                    <label className="block text-sm font-bold mb-2 text-gray-800 dark:text-gray-200">
+                                        伝えたい想いを選ぶ <span className="text-xs font-normal opacity-60 ml-1">（テンプレートから選ぶ）</span>
                                     </label>
                                     <div className="relative">
                                         <select 
                                             value={selectedTemplate}
                                             onChange={handleTemplateSelect}
-                                            className="w-full appearance-none p-2 pl-3 pr-8 bg-white dark:bg-gray-800 border border-orange-200 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer"
+                                            className="w-full appearance-none p-3 bg-hikari-base dark:bg-gray-700 border border-slate-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-hikari-accent outline-none cursor-pointer"
                                         >
                                             {templates.map((tpl, idx) => (
                                                 <option key={idx} value={tpl.value}>{tpl.label}</option>
                                             ))}
                                         </select>
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60 text-orange-800 dark:text-orange-200">
-                                            <ChevronDown size={16} />
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
+                                            <ChevronDown size={18} />
                                         </div>
                                     </div>
-                                    <p className="text-[10px] text-orange-600 dark:text-orange-300 mt-1">※選んだ文章が入力されます（元の内容は上書きされます）</p>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">※選んだ文章が下の入力欄にセットされます（元の内容は上書きされます）</p>
                                 </div>
 
+                                {/* 3. 詳細内容 */}
                                 <div>
-                                    <label className="block text-sm font-bold mb-2">
-                                    詳細内容 
-                                    <span className="ml-2 text-xs font-normal opacity-60">※具体的な行事名や出来事を入力</span>
+                                    <label className="block text-sm font-bold mb-2 text-gray-800 dark:text-gray-200">
+                                        詳細内容 <span className="text-xs font-normal opacity-60 ml-1">※自動入力された文章を自由に編集・追記してください</span>
                                     </label>
                                     <textarea
                                         value={eventDetail}
